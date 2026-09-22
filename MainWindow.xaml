@@ -1,0 +1,1394 @@
+<Window x:Class="CleanDesk.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="CleanDesk" 
+        Height="Auto" 
+        Width="396"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ResizeMode="NoResize"
+        SizeToContent="Height"
+        WindowStartupLocation="Manual"
+        ShowInTaskbar="False"
+        Icon="app.ico"
+        MouseDown="Window_MouseDown">
+
+    <Window.Resources>
+        <!-- Windows Typography -->
+        <FontFamily x:Key="FontDisplay">Segoe UI Variable Display, Segoe UI, -apple-system, sans-serif</FontFamily>
+        <FontFamily x:Key="FontText">Segoe UI Variable Text, Segoe UI, -apple-system, sans-serif</FontFamily>
+        <FontFamily x:Key="FontIcons">Segoe Fluent Icons, Segoe MDL2 Assets, Segoe UI Symbol</FontFamily>
+
+        <!-- Default Theme Colors (Dark Mode matching Mockup 2) -->
+        <SolidColorBrush x:Key="BrushWindowBg" Color="#1E232D"/>
+        <SolidColorBrush x:Key="BrushWindowBorder" Color="#2C3341"/>
+        <SolidColorBrush x:Key="BrushTextPrimary" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="BrushTextSecondary" Color="#94A3B8"/>
+        <SolidColorBrush x:Key="BrushTextMuted" Color="#64748B"/>
+        <SolidColorBrush x:Key="BrushAccent" Color="#1D72FE"/>
+        <SolidColorBrush x:Key="BrushAccentHover" Color="#1562DF"/>
+        <SolidColorBrush x:Key="BrushReviewBg" Color="#2A303C"/>
+        <SolidColorBrush x:Key="BrushReviewHover" Color="#353D4C"/>
+        <SolidColorBrush x:Key="BrushReviewText" Color="#F1F5F9"/>
+        <SolidColorBrush x:Key="BrushSubtleHover" Color="#22FFFFFF"/>
+        
+        <!-- Context Menu Brushes -->
+        <SolidColorBrush x:Key="BrushMenuBg" Color="#222834"/>
+        <SolidColorBrush x:Key="BrushMenuBorder" Color="#323B4C"/>
+        <SolidColorBrush x:Key="BrushMenuItemHover" Color="#2B3342"/>
+        
+        <!-- Folder Illustration Brushes -->
+        <SolidColorBrush x:Key="BrushFolderGlow" Color="#123B82F6"/>
+        <LinearGradientBrush x:Key="BrushBackFolder" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#1D64EB" Offset="0"/>
+            <GradientStop Color="#3B82F6" Offset="1"/>
+        </LinearGradientBrush>
+        <LinearGradientBrush x:Key="BrushFrontFolder" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="#2563EB" Offset="0"/>
+            <GradientStop Color="#60A5FA" Offset="1"/>
+        </LinearGradientBrush>
+
+        <!-- Progress Ring Colors -->
+        <SolidColorBrush x:Key="BrushRingTrack" Color="#2B3241"/>
+
+        <!-- Success Complete Badge Colors -->
+        <SolidColorBrush x:Key="BrushSuccessBg" Color="#143E2C"/>
+        <SolidColorBrush x:Key="BrushSuccessCheck" Color="#4ADE80"/>
+        <SolidColorBrush x:Key="BrushSuccessSparkle" Color="#34D399"/>
+
+        <!-- Danger, Warning and Port Status Colors -->
+        <SolidColorBrush x:Key="BrushDanger" Color="#F87171"/>
+        <SolidColorBrush x:Key="BrushDangerHover" Color="#EF4444"/>
+        <SolidColorBrush x:Key="BrushDangerBg" Color="#3E1B24"/>
+        <SolidColorBrush x:Key="BrushWarning" Color="#FBBF24"/>
+        <SolidColorBrush x:Key="BrushWarningBg" Color="#3D2B14"/>
+        <SolidColorBrush x:Key="BrushPortFreeBg" Color="#133E2B"/>
+        <SolidColorBrush x:Key="BrushPortFreeText" Color="#34D399"/>
+
+        <!-- Windows 11 Modern Minimalist ScrollBar -->
+        <Style x:Key="FluentScrollBarThumb" TargetType="{x:Type Thumb}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="IsTabStop" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Thumb}">
+                        <Border x:Name="thumbBorder" Background="{DynamicResource BrushTextMuted}" Opacity="0.35" CornerRadius="3" Margin="1,0"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="thumbBorder" Property="Opacity" Value="0.75"/>
+                            </Trigger>
+                            <Trigger Property="IsDragging" Value="True">
+                                <Setter TargetName="thumbBorder" Property="Opacity" Value="1"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="{x:Type ScrollBar}">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Style.Triggers>
+                <Trigger Property="Orientation" Value="Vertical">
+                    <Setter Property="Width" Value="6"/>
+                    <Setter Property="Height" Value="Auto"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Grid Background="Transparent">
+                                    <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource FluentScrollBarThumb}"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+                <Trigger Property="Orientation" Value="Horizontal">
+                    <Setter Property="Height" Value="6"/>
+                    <Setter Property="Width" Value="Auto"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="{x:Type ScrollBar}">
+                                <Grid Background="Transparent">
+                                    <Track x:Name="PART_Track">
+                                        <Track.Thumb>
+                                            <Thumb Style="{StaticResource FluentScrollBarThumb}"/>
+                                        </Track.Thumb>
+                                    </Track>
+                                </Grid>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Fluent 2 Tab Button Style (Modern Segmented Pill) -->
+        <Style x:Key="FluentTabButton" TargetType="RadioButton">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="FontFamily" Value="{StaticResource FontText}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="6,2">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushSubtleHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushAccent}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Danger Action Button Style -->
+        <Style x:Key="DangerActionBtn" TargetType="Button">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="{DynamicResource BrushDanger}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontFamily" Value="{StaticResource FontText}"/>
+            <Setter Property="Padding" Value="10,2"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Opacity" Value="0.88"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Header Button Style (26x26, 5px) -->
+        <Style x:Key="HeaderBtn" TargetType="Button">
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushSubtleHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bdr" Property="Opacity" Value="0.38"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Fluent 2 Danger Pill Button (Kill in process rows) -->
+        <Style x:Key="DangerPillButton" TargetType="Button">
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Padding" Value="9,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="{DynamicResource BrushDangerBg}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushDanger}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushDanger}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bdr" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDanger}"/>
+                                <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource BrushDanger}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDangerHover}"/>
+                                <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource BrushDangerHover}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Fluent 2 Danger Icon Button (Kill single port 26x26) -->
+        <Style x:Key="DangerIconButton" TargetType="Button">
+            <Setter Property="Width" Value="26"/>
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="{DynamicResource BrushDangerBg}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushDanger}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushDanger}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bdr" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDanger}"/>
+                                <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource BrushDanger}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDangerHover}"/>
+                                <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource BrushDangerHover}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Fluent 2 ContextMenu Style -->
+        <Style x:Key="FluentContextMenu" TargetType="ContextMenu">
+            <Setter Property="Background" Value="{DynamicResource BrushMenuBg}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushMenuBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="4,5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContextMenu">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8">
+                            <Border.Effect>
+                                <DropShadowEffect BlurRadius="20" ShadowDepth="4" Direction="270" Color="#000000" Opacity="0.35"/>
+                            </Border.Effect>
+                            <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Fluent 2 MenuItem Style -->
+        <Style x:Key="FluentMenuItem" TargetType="MenuItem">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="itemBorder" Background="Transparent" CornerRadius="5" Padding="8,4" Margin="2,1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="22"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter Grid.Column="0" ContentSource="Icon" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                                <TextBlock Grid.Column="1" Text="{TemplateBinding Header}" 
+                                           Foreground="{TemplateBinding Foreground}" 
+                                           FontFamily="{StaticResource FontText}" 
+                                           FontSize="11.5" 
+                                           VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="itemBorder" Property="Background" Value="{DynamicResource BrushMenuItemHover}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Fluent Menu Separator -->
+        <Style x:Key="FluentMenuSeparator" TargetType="Separator">
+            <Setter Property="Height" Value="1"/>
+            <Setter Property="Margin" Value="4,4"/>
+            <Setter Property="Background" Value="{DynamicResource BrushMenuBorder}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Separator">
+                        <Rectangle Height="1" Fill="{TemplateBinding Background}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Fluent CheckBox Style -->
+        <Style x:Key="FluentCheckBox" TargetType="CheckBox">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="chkBorder" 
+                                Width="16" Height="16" 
+                                CornerRadius="3" 
+                                BorderThickness="1" 
+                                BorderBrush="{DynamicResource BrushTextMuted}" 
+                                Background="Transparent">
+                            <TextBlock x:Name="chkGlyph" 
+                                       Text="&#xE73E;" 
+                                       FontFamily="{StaticResource FontIcons}" 
+                                       FontSize="9" 
+                                       Foreground="White" 
+                                       HorizontalAlignment="Center" 
+                                       VerticalAlignment="Center" 
+                                       Visibility="Collapsed"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="chkBorder" Property="Background" Value="{DynamicResource BrushAccent}"/>
+                                <Setter TargetName="chkBorder" Property="BorderBrush" Value="{DynamicResource BrushAccent}"/>
+                                <Setter TargetName="chkGlyph" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="chkBorder" Property="BorderBrush" Value="{DynamicResource BrushAccent}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <!-- Outer Window Surface with Mockup Shadow & 16px Radius -->
+    <Grid Margin="12">
+        <Border x:Name="WindowCard" 
+                Background="{DynamicResource BrushWindowBg}" 
+                CornerRadius="16" 
+                BorderBrush="{DynamicResource BrushWindowBorder}" 
+                BorderThickness="1">
+            <Border.Effect>
+                <DropShadowEffect x:Name="WindowShadow" 
+                                  BlurRadius="28" 
+                                  ShadowDepth="5" 
+                                  Direction="270" 
+                                  Color="#000000" 
+                                  Opacity="0.38"/>
+            </Border.Effect>
+
+            <Grid Margin="16,14,16,16">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Row 0: Top Header -->
+                    <RowDefinition Height="Auto"/> <!-- Row 1: Segmented Navigation Tab Bar -->
+                    <RowDefinition Height="Auto"/> <!-- Row 2: Active Tab Content -->
+                </Grid.RowDefinitions>
+
+                <!-- ROW 0: TOP HEADER -->
+                <Grid Grid.Row="0" Margin="0,0,0,10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- App Icon & Title -->
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Border Width="22" Height="22" CornerRadius="5" Background="#1D72FE" Margin="0,0,8,0">
+                            <TextBlock Text="&#xED25;" 
+                                       FontFamily="{StaticResource FontIcons}" 
+                                       FontSize="11" 
+                                       Foreground="White" 
+                                       HorizontalAlignment="Center" 
+                                       VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="CleanDesk" 
+                                   Foreground="{DynamicResource BrushTextPrimary}" 
+                                   FontWeight="SemiBold" 
+                                   FontSize="13.5" 
+                                   FontFamily="{StaticResource FontDisplay}" 
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <!-- Header Actions: Expand (compact mode) & Options (...) -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="BtnExpandCompact" 
+                                Click="BtnExpandCompact_Click" 
+                                Style="{StaticResource HeaderBtn}" 
+                                ToolTip="Expand to Full View" 
+                                Visibility="Collapsed" 
+                                Width="26" Height="26"
+                                Margin="0,0,3,0">
+                            <TextBlock Text="&#xE740;" 
+                                       FontFamily="{StaticResource FontIcons}" 
+                                       FontSize="11" 
+                                       Foreground="{DynamicResource BrushTextSecondary}"/>
+                        </Button>
+                        <Button x:Name="BtnOptions" 
+                                Click="BtnOptions_Click" 
+                                Style="{StaticResource HeaderBtn}" 
+                                ToolTip="Options">
+                            <TextBlock Text="&#xE712;" 
+                                       FontFamily="{StaticResource FontIcons}" 
+                                       FontSize="13" 
+                                       Foreground="{DynamicResource BrushTextSecondary}"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- ROW 1: FLUENT 2 SEGMENTED NAVIGATION TABS -->
+                <Border x:Name="NavigationBarBorder" Grid.Row="1" Background="{DynamicResource BrushReviewBg}" CornerRadius="7" Padding="3" Margin="0,0,0,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <RadioButton x:Name="TabBtnClean" Grid.Column="0" Content="Clean" Style="{StaticResource FluentTabButton}" IsChecked="True" Click="TabBtn_Click" Tag="Clean"/>
+                        <RadioButton x:Name="TabBtnPorts" Grid.Column="1" Content="Ports" Style="{StaticResource FluentTabButton}" Click="TabBtn_Click" Tag="Ports"/>
+                        <RadioButton x:Name="TabBtnTasks" Grid.Column="2" Content="RAM &amp; Tasks" Style="{StaticResource FluentTabButton}" Click="TabBtn_Click" Tag="Tasks"/>
+                    </Grid>
+                </Border>
+
+                <!-- ROW 2: ACTIVE CONTENT (Compact View or Full View) -->
+                <Grid Grid.Row="2">
+                    <!-- ============================================== -->
+                    <!-- COMPACT WIDGET CONTAINER (Super Minimalist)   -->
+                    <!-- ============================================== -->
+                    <Grid x:Name="CompactWidgetContainer" Background="Transparent" Visibility="Collapsed" Opacity="0" Margin="0,2,0,2" MouseWheel="CompactWidgetContainer_MouseWheel">
+                        <Grid.RenderTransform>
+                            <TranslateTransform x:Name="TransCompact" Y="0"/>
+                        </Grid.RenderTransform>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/> <!-- Active Feature Card -->
+                            <RowDefinition Height="Auto"/> <!-- Stepper & Dot Navigation -->
+                        </Grid.RowDefinitions>
+
+                        <!-- ROW 0: 3 FEATURE CARDS (Smooth Cross-fade & Slide) -->
+                        <Grid Grid.Row="0">
+                            <!-- FEATURE 1: CLEAN COMPACT CARD -->
+                            <Grid x:Name="CompactCardClean" Visibility="Visible" Opacity="1">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform x:Name="TransCompactClean" X="0"/>
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="38" Height="38" CornerRadius="9" Background="{DynamicResource BrushReviewBg}" Margin="0,0,12,0" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE74C;" FontFamily="{StaticResource FontIcons}" FontSize="18" Foreground="{DynamicResource BrushAccent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                    <TextBlock x:Name="TxtCompactCleanTag" Text="LIMPIEZA" FontSize="8.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" FontFamily="{StaticResource FontText}"/>
+                                    <TextBlock x:Name="TxtCompactCleanSize" Text="0 MB" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" FontFamily="{StaticResource FontDisplay}"/>
+                                    <TextBlock x:Name="TxtCompactCleanDesc" Text="Sin escanear" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" FontFamily="{StaticResource FontText}"/>
+                                </StackPanel>
+
+                                <Button x:Name="BtnCompactCleanAction" Grid.Column="2" Click="BtnCompactCleanAction_Click" Height="28" Padding="12,0" Cursor="Hand" Background="{DynamicResource BrushAccent}" BorderThickness="0" VerticalAlignment="Center">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="5">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushAccentHover}"/>
+                                                </Trigger>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                                    <Setter Property="Cursor" Value="Arrow"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="IcoCompactCleanAction" Text="&#xE721;" FontFamily="{StaticResource FontIcons}" FontSize="10" Foreground="White" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="TxtCompactCleanAction" Text="Scan" Foreground="White" FontWeight="SemiBold" FontSize="11" FontFamily="{StaticResource FontText}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <!-- FEATURE 2: PORTS COMPACT CARD -->
+                            <Grid x:Name="CompactCardPorts" Visibility="Collapsed" Opacity="0">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform x:Name="TransCompactPorts" X="8"/>
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="38" Height="38" CornerRadius="9" Background="{DynamicResource BrushReviewBg}" Margin="0,0,12,0" VerticalAlignment="Center">
+                                    <TextBlock Text="&#xE968;" FontFamily="{StaticResource FontIcons}" FontSize="18" Foreground="{DynamicResource BrushAccent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                    <TextBlock x:Name="TxtCompactPortsTag" Text="PUERTOS DEV" FontSize="8.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" FontFamily="{StaticResource FontText}"/>
+                                    <TextBlock x:Name="TxtCompactPortsTitle" Text="Todos libres" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" FontFamily="{StaticResource FontDisplay}"/>
+                                    <TextBlock x:Name="TxtCompactPortsDesc" Text="Sin puertos ocupados" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" FontFamily="{StaticResource FontText}"/>
+                                </StackPanel>
+
+                                <Button x:Name="BtnCompactPortsAction" Grid.Column="2" Click="BtnCompactPortsAction_Click" Height="28" Padding="12,0" Cursor="Hand" Background="{DynamicResource BrushDanger}" BorderThickness="0" VerticalAlignment="Center" Visibility="Collapsed">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="5">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDangerHover}"/>
+                                                </Trigger>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                                    <Setter Property="Cursor" Value="Arrow"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE74D;" FontFamily="{StaticResource FontIcons}" FontSize="10" Foreground="White" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="TxtCompactPortsAction" Text="Kill" Foreground="White" FontWeight="SemiBold" FontSize="11" FontFamily="{StaticResource FontText}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+
+                            <!-- FEATURE 3: TASKS / RAM COMPACT CARD -->
+                            <Grid x:Name="CompactCardTasks" Visibility="Collapsed" Opacity="0">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform x:Name="TransCompactTasks" X="8"/>
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="38" Height="38" CornerRadius="9" Background="{DynamicResource BrushReviewBg}" Margin="0,0,12,0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="IcoCompactTasksMain" Text="&#xE950;" FontFamily="{StaticResource FontIcons}" FontSize="18" Foreground="{DynamicResource BrushAccent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                    <TextBlock x:Name="TxtCompactTasksTag" Text="PROCESOS DEV &amp; RAM" FontSize="8.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" FontFamily="{StaticResource FontText}"/>
+                                    <TextBlock x:Name="TxtCompactTasksTitle" Text="0 MB RAM" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" FontFamily="{StaticResource FontDisplay}"/>
+                                    <TextBlock x:Name="TxtCompactTasksDesc" Text="Sin bucles detectados" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" FontFamily="{StaticResource FontText}"/>
+                                </StackPanel>
+
+                                <Button x:Name="BtnCompactTasksAction" Grid.Column="2" Click="BtnCompactTasksAction_Click" Height="28" Padding="12,0" Cursor="Hand" Background="{DynamicResource BrushDanger}" BorderThickness="0" VerticalAlignment="Center" Visibility="Collapsed">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="5">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDangerHover}"/>
+                                                </Trigger>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                                    <Setter Property="Cursor" Value="Arrow"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="&#xE74D;" FontFamily="{StaticResource FontIcons}" FontSize="10" Foreground="White" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="TxtCompactTasksAction" Text="Kill" Foreground="White" FontWeight="SemiBold" FontSize="11" FontFamily="{StaticResource FontText}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
+                        </Grid>
+
+                        <!-- ROW 1: MINIMALIST STEPPER & DOTS (NO TABS!) -->
+                        <Grid Grid.Row="1" Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/> <!-- Prev Button < -->
+                                <ColumnDefinition Width="*"/>    <!-- Centered Dots • • • -->
+                                <ColumnDefinition Width="Auto"/> <!-- Next Button > -->
+                            </Grid.ColumnDefinitions>
+
+                            <!-- Previous Chevron Button -->
+                            <Button x:Name="BtnCompactPrev" Grid.Column="0" Click="BtnCompactPrev_Click" Style="{StaticResource HeaderBtn}" Width="22" Height="20" ToolTip="Feature Anterior">
+                                <TextBlock Text="&#xE76B;" FontFamily="{StaticResource FontIcons}" FontSize="9" Foreground="{DynamicResource BrushTextMuted}"/>
+                            </Button>
+
+                            <!-- Centered Micro Indicator Pills (Clean, Ports, Tasks) -->
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <!-- Dot 1: Clean -->
+                                <Border Background="Transparent" Padding="4,6" Cursor="Hand" MouseDown="DotCompactClean_MouseDown" ToolTip="Limpieza">
+                                    <Border x:Name="DotCompactClean" Width="14" Height="4" CornerRadius="2" Background="{DynamicResource BrushAccent}"/>
+                                </Border>
+                                <!-- Dot 2: Ports -->
+                                <Border Background="Transparent" Padding="4,6" Cursor="Hand" MouseDown="DotCompactPorts_MouseDown" ToolTip="Puertos">
+                                    <Border x:Name="DotCompactPorts" Width="4" Height="4" CornerRadius="2" Background="{DynamicResource BrushTextMuted}"/>
+                                </Border>
+                                <!-- Dot 3: Tasks -->
+                                <Border Background="Transparent" Padding="4,6" Cursor="Hand" MouseDown="DotCompactTasks_MouseDown" ToolTip="RAM &amp; Tareas">
+                                    <Border x:Name="DotCompactTasks" Width="4" Height="4" CornerRadius="2" Background="{DynamicResource BrushTextMuted}"/>
+                                </Border>
+                            </StackPanel>
+
+                            <!-- Next Chevron Button -->
+                            <Button x:Name="BtnCompactNext" Grid.Column="2" Click="BtnCompactNext_Click" Style="{StaticResource HeaderBtn}" Width="22" Height="20" ToolTip="Siguiente Feature">
+                                <TextBlock Text="&#xE76C;" FontFamily="{StaticResource FontIcons}" FontSize="9" Foreground="{DynamicResource BrushTextMuted}"/>
+                            </Button>
+                        </Grid>
+                    </Grid>
+
+                    <!-- ============================================== -->
+                    <!-- FULL VIEW CONTAINER (Tabs 1, 2, 3)             -->
+                    <!-- ============================================== -->
+                    <Grid x:Name="FullContentContainer" Visibility="Visible" Opacity="1">
+                        <!-- ============================================== -->
+                        <!-- TAB 1: CLEANER CONTAINER                       -->
+                        <!-- ============================================== -->
+                        <Grid x:Name="TabCleanContainer" Visibility="Visible" Opacity="1">
+                        <Grid.RenderTransform>
+                            <TranslateTransform x:Name="TransCleanTab" Y="0"/>
+                        </Grid.RenderTransform>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/> <!-- Row 0: States -->
+                            <RowDefinition Height="Auto"/> <!-- Row 1: Action Buttons -->
+                            <RowDefinition Height="Auto"/> <!-- Row 2: Drawer -->
+                        </Grid.RowDefinitions>
+
+                        <!-- DYNAMIC STATE VIEW CONTAINER (with animated transitions) -->
+                        <Grid Grid.Row="0">
+                            <!-- ============================================== -->
+                            <!-- STATE 0: READY TO SCAN (Manual Initial State)  -->
+                            <!-- ============================================== -->
+                            <Grid x:Name="StateReadyToScan" Visibility="Visible" Margin="0,2,0,14" Opacity="1">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform x:Name="TransReadyToScan" Y="0"/>
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="106"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Left Column: Vector Illustration -->
+                                <Grid Grid.Column="0" Width="92" Height="84" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <Ellipse Width="82" Height="82" Fill="{DynamicResource BrushFolderGlow}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <Border Width="50" Height="50" CornerRadius="12" Background="{DynamicResource BrushAccent}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                        <Border.Effect>
+                                            <DropShadowEffect BlurRadius="12" ShadowDepth="3" Direction="270" Color="#0035A0" Opacity="0.30"/>
+                                        </Border.Effect>
+                                        <TextBlock Text="&#xE74C;" FontFamily="{StaticResource FontIcons}" FontSize="22" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </Grid>
+
+                                <!-- Right Column: Welcome / Manual Scan Action -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="4,0,0,0">
+                                    <TextBlock x:Name="TxtReadyTitle"
+                                               Text="System Cleaner" 
+                                               Foreground="{DynamicResource BrushTextPrimary}" 
+                                               FontSize="15" 
+                                               FontWeight="Bold" 
+                                               FontFamily="{StaticResource FontDisplay}"/>
+                                    <TextBlock x:Name="TxtReadyDesc" 
+                                               Text="Scan your PC to find temporary files and outdated cache." 
+                                               Foreground="{DynamicResource BrushTextSecondary}" 
+                                               FontSize="10.5" 
+                                               TextWrapping="Wrap" 
+                                               Margin="0,3,0,10" 
+                                               FontFamily="{StaticResource FontText}"/>
+                                    <Button x:Name="BtnScanPC" 
+                                            Click="BtnScanPC_Click"
+                                            Height="32" 
+                                            Cursor="Hand" 
+                                            Background="{DynamicResource BrushAccent}" 
+                                            BorderThickness="0" 
+                                            HorizontalAlignment="Left" 
+                                            Padding="14,0">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="6">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                                </Border>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushAccentHover}"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsEnabled" Value="False">
+                                                        <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                                        <Setter Property="Cursor" Value="Arrow"/>
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="&#xE721;" FontFamily="{StaticResource FontIcons}" FontSize="11" Foreground="White" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="TxtScanPCBtn" Text="Scan PC" Foreground="White" FontWeight="SemiBold" FontSize="11.5" FontFamily="{StaticResource FontText}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+
+                            <!-- ============================================== -->
+                            <!-- STATE 1 & 2: FULL / IDLE (Light & Dark Mode)   -->
+                            <!-- ============================================== -->
+                            <Grid x:Name="StateFullIdle" Visibility="Collapsed" Margin="0,2,0,14" Opacity="0">
+                        <Grid.RenderTransform>
+                            <TranslateTransform x:Name="TransFullIdle" Y="0"/>
+                        </Grid.RenderTransform>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="106"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Left Column: Vector Folder Illustration (NO STAR) -->
+                        <Grid Grid.Column="0" Width="92" Height="84" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Ellipse Width="82" Height="82" Fill="{DynamicResource BrushFolderGlow}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            
+                            <Border Width="50" Height="48" CornerRadius="10" 
+                                    Background="{DynamicResource BrushBackFolder}" 
+                                    HorizontalAlignment="Left" VerticalAlignment="Top" 
+                                    Margin="4,8,0,0">
+                                <Border.RenderTransform>
+                                    <RotateTransform Angle="-8" CenterX="25" CenterY="24"/>
+                                </Border.RenderTransform>
+                            </Border>
+
+                            <Border Width="52" Height="48" CornerRadius="10" 
+                                    Background="{DynamicResource BrushFrontFolder}" 
+                                    HorizontalAlignment="Right" VerticalAlignment="Bottom" 
+                                    Margin="0,0,4,4">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="10" ShadowDepth="3" Direction="270" Color="#0035A0" Opacity="0.30"/>
+                                </Border.Effect>
+                            </Border>
+                        </Grid>
+
+                        <!-- Right Column: Stats & Description -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="4,0,0,0">
+                            <Grid Margin="0,0,0,2">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock x:Name="TxtSubtitleFound"
+                                           Text="Temporary files found" 
+                                           Foreground="{DynamicResource BrushTextSecondary}" 
+                                           FontSize="11" 
+                                           FontFamily="{StaticResource FontText}"
+                                           VerticalAlignment="Center"/>
+                                <!-- Local Rescan Button in Clean Tab -->
+                                <Button x:Name="BtnRescanClean" 
+                                        Grid.Column="1" 
+                                        Click="BtnRescanClean_Click" 
+                                        Style="{StaticResource HeaderBtn}" 
+                                        ToolTip="Rescan PC" 
+                                        Width="24" 
+                                        Height="24">
+                                    <TextBlock x:Name="IcoRescanClean" 
+                                               Text="&#xE72C;" 
+                                               FontFamily="{StaticResource FontIcons}" 
+                                               FontSize="10.5" 
+                                               Foreground="{DynamicResource BrushTextSecondary}"/>
+                                </Button>
+                            </Grid>
+                            <TextBlock x:Name="TxtTotalSize" 
+                                       Text="0 MB" 
+                                       Foreground="{DynamicResource BrushTextPrimary}" 
+                                       FontSize="28" 
+                                       FontWeight="Bold" 
+                                       FontFamily="{StaticResource FontDisplay}" 
+                                       Margin="0,0,0,0"/>
+                            <TextBlock x:Name="TxtFileCount" 
+                                       Text="in 1,247 files" 
+                                       Foreground="{DynamicResource BrushTextSecondary}" 
+                                       FontSize="11.5" 
+                                       FontFamily="{StaticResource FontText}"/>
+                            <TextBlock x:Name="TxtFreeUpDesc"
+                                       Text="Free up space and keep your PC running smoothly." 
+                                       Foreground="{DynamicResource BrushTextSecondary}" 
+                                       FontSize="10.5" 
+                                       TextWrapping="Wrap" 
+                                       Margin="0,4,0,0" 
+                                       FontFamily="{StaticResource FontText}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- ============================================== -->
+                    <!-- STATE 4: SCANNING / LOADING STATE              -->
+                    <!-- ============================================== -->
+                    <Grid x:Name="StateScanning" Visibility="Collapsed" Margin="0,2,0,14" Opacity="0">
+                        <Grid.RenderTransform>
+                            <TranslateTransform x:Name="TransScanning" Y="0"/>
+                        </Grid.RenderTransform>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="106"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Circular Progress Ring with live Percentage -->
+                        <Grid Grid.Column="0" Width="80" Height="80" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Ellipse Width="64" Height="64" Stroke="{DynamicResource BrushRingTrack}" StrokeThickness="5"/>
+                            
+                            <Path x:Name="ProgressArc" 
+                                  Stroke="{DynamicResource BrushAccent}" 
+                                  StrokeThickness="5" 
+                                  StrokeStartLineCap="Round" 
+                                  StrokeEndLineCap="Round"/>
+
+                            <TextBlock x:Name="TxtScanPercent" 
+                                       Text="0%" 
+                                       Foreground="{DynamicResource BrushTextPrimary}" 
+                                       FontWeight="Bold" 
+                                       FontSize="15" 
+                                       FontFamily="{StaticResource FontDisplay}" 
+                                       HorizontalAlignment="Center" 
+                                       VerticalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Text Details -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="4,0,0,0">
+                            <TextBlock x:Name="TxtScanTitle"
+                                       Text="Scanning temporary files" 
+                                       Foreground="{DynamicResource BrushTextPrimary}" 
+                                       FontWeight="Bold" 
+                                       FontSize="13.5" 
+                                       FontFamily="{StaticResource FontDisplay}"/>
+                            <TextBlock x:Name="TxtScanDescription"
+                                       Text="Checking your system for files that can be safely removed..." 
+                                       Foreground="{DynamicResource BrushTextSecondary}" 
+                                       FontSize="11" 
+                                       TextWrapping="Wrap" 
+                                       Margin="0,3,0,0" 
+                                       FontFamily="{StaticResource FontText}"/>
+                            <TextBlock x:Name="TxtScanNote"
+                                       Text="This may take a few moments." 
+                                       Foreground="{DynamicResource BrushTextMuted}" 
+                                       FontSize="10" 
+                                       Margin="0,5,0,0" 
+                                       FontFamily="{StaticResource FontText}"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- ============================================== -->
+                    <!-- STATE 5: CLEANING COMPLETE STATE               -->
+                    <!-- ============================================== -->
+                    <Grid x:Name="StateComplete" Visibility="Collapsed" Margin="0,4,0,14" Opacity="0">
+                        <Grid.RenderTransform>
+                            <TranslateTransform x:Name="TransComplete" Y="0"/>
+                        </Grid.RenderTransform>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="106"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Circular Green Badge with Checkmark & Sparkles (with organic bounce) -->
+                        <Grid Grid.Column="0" Width="80" Height="80" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Path x:Name="Sparkle1" Data="M 4,0 C 4,2 2,4 0,4 C 2,4 4,6 4,8 C 4,6 6,4 8,4 C 6,4 4,2 4,0 Z" 
+                                  Fill="{DynamicResource BrushSuccessSparkle}" Width="7" Height="7" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,12,0,0"/>
+                            <Path x:Name="Sparkle2" Data="M 4,0 C 4,2 2,4 0,4 C 2,4 4,6 4,8 C 4,6 6,4 8,4 C 6,4 4,2 4,0 Z" 
+                                  Fill="{DynamicResource BrushSuccessSparkle}" Width="9" Height="9" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"/>
+                            <Path x:Name="Sparkle3" Data="M 4,0 C 4,2 2,4 0,4 C 2,4 4,6 4,8 C 4,6 6,4 8,4 C 6,4 4,2 4,0 Z" 
+                                  Fill="{DynamicResource BrushSuccessSparkle}" Width="6" Height="6" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12"/>
+                            <Path x:Name="Sparkle4" Data="M 4,0 C 4,2 2,4 0,4 C 2,4 4,6 4,8 C 4,6 6,4 8,4 C 6,4 4,2 4,0 Z" 
+                                  Fill="{DynamicResource BrushSuccessSparkle}" Width="7" Height="7" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="12,0,0,10"/>
+
+                            <!-- Green Circular Badge -->
+                            <Border x:Name="BadgeComplete" Width="56" Height="56" CornerRadius="28" Background="{DynamicResource BrushSuccessBg}">
+                                <Border.RenderTransform>
+                                    <ScaleTransform x:Name="ScaleCompleteBadge" ScaleX="1" ScaleY="1" CenterX="28" CenterY="28"/>
+                                </Border.RenderTransform>
+                                <TextBlock Text="&#xE73E;" 
+                                           FontFamily="{StaticResource FontIcons}" 
+                                           FontSize="22" 
+                                           FontWeight="Bold" 
+                                           Foreground="{DynamicResource BrushSuccessCheck}" 
+                                           HorizontalAlignment="Center" 
+                                           VerticalAlignment="Center"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- Complete Text Details -->
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="4,0,0,0">
+                            <TextBlock x:Name="TxtSpaceRecoveredTitle"
+                                       Text="Space recovered!" 
+                                       Foreground="{DynamicResource BrushTextPrimary}" 
+                                       FontWeight="Bold" 
+                                       FontSize="14" 
+                                       FontFamily="{StaticResource FontDisplay}"/>
+                            <TextBlock x:Name="TxtCompleteStats" 
+                                       Text="2.8 GB cleaned" 
+                                       Foreground="{DynamicResource BrushTextPrimary}" 
+                                       FontWeight="SemiBold" 
+                                       FontSize="11.5" 
+                                       Margin="0,2,0,0" 
+                                       FontFamily="{StaticResource FontText}"/>
+                            <TextBlock x:Name="TxtSpaceRecoveredDesc"
+                                       Text="Your PC is cleaner and ready to go." 
+                                       Foreground="{DynamicResource BrushTextSecondary}" 
+                                       FontSize="11" 
+                                       Margin="0,3,0,0" 
+                                       FontFamily="{StaticResource FontText}"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+
+                <!-- ROW 1: ACTION BUTTONS (Clean now / Details) -->
+                <Grid x:Name="ActionButtonsRow" Grid.Row="1" Visibility="Collapsed" Margin="0,4,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="12"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- "Clean now" Button -->
+                    <Button x:Name="BtnCleanNow" 
+                            Grid.Column="0" 
+                            Click="BtnCleanNow_Click"
+                            Height="34" 
+                            Cursor="Hand"
+                            Background="{DynamicResource BrushAccent}" 
+                            BorderThickness="0">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="6">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushAccentHover}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                        <Setter Property="Cursor" Value="Arrow"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE790;" 
+                                       FontFamily="{StaticResource FontIcons}" 
+                                       FontSize="11.5" 
+                                       Foreground="White" 
+                                       Margin="0,0,7,0" 
+                                       VerticalAlignment="Center"/>
+                            <TextBlock x:Name="TxtCleanNowBtn"
+                                       Text="Clean now" 
+                                       Foreground="White" 
+                                       FontWeight="SemiBold" 
+                                       FontSize="12" 
+                                       FontFamily="{StaticResource FontText}" 
+                                       VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <!-- "Details" Button (Replaces "Review") -->
+                    <Button x:Name="BtnReview" 
+                            Grid.Column="2" 
+                            Click="BtnReview_Click"
+                            Height="34" 
+                            Cursor="Hand"
+                            Background="{DynamicResource BrushReviewBg}" 
+                            BorderThickness="0">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="6">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushReviewHover}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                        <Setter Property="Cursor" Value="Arrow"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <TextBlock x:Name="TxtReviewBtn" 
+                                   Text="Details" 
+                                   Foreground="{DynamicResource BrushReviewText}" 
+                                   FontWeight="SemiBold" 
+                                   FontSize="12" 
+                                   FontFamily="{StaticResource FontText}" 
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center"/>
+                    </Button>
+                </Grid>
+
+                <!-- ROW 2: DETAILS / CATEGORIES DRAWER (with slide animation) -->
+                <StackPanel x:Name="PanelReviewDrawer" Grid.Row="2" Visibility="Collapsed" Margin="0,12,0,0" Opacity="0">
+                    <StackPanel.RenderTransform>
+                        <TranslateTransform x:Name="TransDrawer" Y="0"/>
+                    </StackPanel.RenderTransform>
+                    <Rectangle Height="1" Fill="{DynamicResource BrushWindowBorder}" Margin="0,0,0,10"/>
+                    <ScrollViewer MaxHeight="200" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl x:Name="ItemsCategories">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border CornerRadius="7" Padding="10,7" Margin="0,0,0,5" Background="{DynamicResource BrushSubtleHover}" BorderBrush="{DynamicResource BrushWindowBorder}" BorderThickness="1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <!-- Checkbox -->
+                                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" 
+                                                      Checked="OnCategoryCheckChanged" 
+                                                      Unchecked="OnCategoryCheckChanged" 
+                                                      Margin="0,0,10,0"
+                                                      VerticalAlignment="Center"
+                                                      Style="{StaticResource FluentCheckBox}"/>
+
+                                            <!-- Glyph -->
+                                            <TextBlock Grid.Column="1" 
+                                                       Text="{Binding Glyph}" 
+                                                       FontFamily="{StaticResource FontIcons}" 
+                                                       FontSize="13" 
+                                                       Foreground="{DynamicResource BrushAccent}" 
+                                                       VerticalAlignment="Center" 
+                                                       Margin="0,0,10,0"/>
+
+                                            <!-- Name & Description -->
+                                            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" 
+                                                           Foreground="{DynamicResource BrushTextPrimary}" 
+                                                           FontSize="11.5" 
+                                                           FontWeight="SemiBold" 
+                                                           FontFamily="{StaticResource FontText}"/>
+                                                <TextBlock Text="{Binding Description}" 
+                                                           Foreground="{DynamicResource BrushTextMuted}" 
+                                                           FontSize="9.5" 
+                                                           FontFamily="{StaticResource FontText}" 
+                                                           Margin="0,1,0,0"/>
+                                            </StackPanel>
+
+                                            <!-- Size -->
+                                            <TextBlock Grid.Column="3" 
+                                                       Text="{Binding FormattedSize}" 
+                                                       Foreground="{DynamicResource BrushTextPrimary}" 
+                                                       FontWeight="Bold" 
+                                                       FontSize="11.5" 
+                                                       VerticalAlignment="Center" 
+                                                       Margin="10,0,0,0"
+                                                       FontFamily="{StaticResource FontText}"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </StackPanel>
+            </Grid>
+            <!-- END TAB 1: CLEANER CONTAINER -->
+
+            <!-- ============================================== -->
+            <!-- TAB 2: PORTS CONTAINER (KillerPort)            -->
+            <!-- ============================================== -->
+            <Grid x:Name="TabPortsContainer" Visibility="Collapsed" Opacity="0">
+                <Grid.RenderTransform>
+                    <TranslateTransform x:Name="TransPortsTab" Y="6"/>
+                </Grid.RenderTransform>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Header / Summary -->
+                    <RowDefinition Height="Auto"/> <!-- Action bar -->
+                    <RowDefinition Height="Auto"/> <!-- Custom port input -->
+                    <RowDefinition Height="*"/>    <!-- Ports list -->
+                </Grid.RowDefinitions>
+
+                <!-- Row 0: Header & Refresh -->
+                <Grid Grid.Row="0" Margin="0,2,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtPortsHeaderTitle" Text="Listening Dev Ports" Foreground="{DynamicResource BrushTextPrimary}" FontSize="13.5" FontWeight="SemiBold" FontFamily="{StaticResource FontText}"/>
+                        <TextBlock x:Name="TxtPortsSummary" Text="Checking dev ports..." Foreground="{DynamicResource BrushTextSecondary}" FontSize="11" FontFamily="{StaticResource FontText}" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <Button x:Name="BtnRefreshPorts" Grid.Column="1" Click="BtnRefreshPorts_Click" Style="{StaticResource HeaderBtn}" ToolTip="Refresh Ports" Width="28" Height="28">
+                        <TextBlock x:Name="IcoRefreshPorts" Text="&#xE72C;" FontFamily="{StaticResource FontIcons}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}"/>
+                    </Button>
+                </Grid>
+
+                <!-- Row 1: Action Bar (Kill Busy Ports) -->
+                <Grid Grid.Row="1" Margin="0,0,0,12">
+                    <Button x:Name="BtnKillAllBusy" Click="BtnKillAllBusy_Click" Height="34" Cursor="Hand" Background="{DynamicResource BrushDanger}" BorderThickness="0">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="6">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDangerHover}"/>
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                        <Setter Property="Cursor" Value="Arrow"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE74D;" FontFamily="{StaticResource FontIcons}" FontSize="11" Foreground="White" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="TxtKillAllBusyBtn" Text="Kill Busy Ports" Foreground="White" FontWeight="Bold" FontSize="11.5" FontFamily="{StaticResource FontText}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- Row 2: Custom Port Checker Row -->
+                <Border Grid.Row="2" Background="{DynamicResource BrushReviewBg}" BorderBrush="{DynamicResource BrushWindowBorder}" BorderThickness="1" CornerRadius="7" Padding="8,3" Margin="0,0,0,12" Height="36">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="&#xE71E;" FontFamily="{StaticResource FontIcons}" FontSize="12" Foreground="{DynamicResource BrushTextMuted}" VerticalAlignment="Center" Margin="4,0,8,0"/>
+                        <Grid Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock x:Name="TxtCustomPortPlaceholder" Text="Custom port (e.g. 8080)..." Foreground="{DynamicResource BrushTextMuted}" FontSize="11.5" FontFamily="{StaticResource FontText}" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                            <TextBox x:Name="TxtCustomPort" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource BrushTextPrimary}" FontSize="11.5" FontFamily="{StaticResource FontText}" VerticalAlignment="Center" TextChanged="TxtCustomPort_TextChanged" KeyDown="TxtCustomPort_KeyDown"/>
+                        </Grid>
+                        <Button x:Name="BtnAddCustomPort" Grid.Column="2" Click="BtnAddCustomPort_Click" Height="28" Padding="14,0" Cursor="Hand" Background="{DynamicResource BrushAccent}" BorderThickness="0">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="5">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushAccentHover}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                            <Setter Property="Cursor" Value="Arrow"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE710;" FontFamily="{StaticResource FontIcons}" FontSize="10" Foreground="White" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                <TextBlock x:Name="TxtAddPortBtn" Text="Add Port" Foreground="White" FontSize="11" FontWeight="SemiBold" FontFamily="{StaticResource FontText}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Row 3: Ports List (Scrollable) -->
+                <ScrollViewer Grid.Row="3" MaxHeight="220" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="ItemsPorts">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="8" Padding="12,9" Margin="0,0,0,6" Background="{DynamicResource BrushSubtleHover}" BorderBrush="{DynamicResource BrushWindowBorder}" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/> <!-- Badge Port -->
+                                            <ColumnDefinition Width="*"/>    <!-- Process info -->
+                                            <ColumnDefinition Width="Auto"/> <!-- Status -->
+                                            <ColumnDefinition Width="Auto"/> <!-- Kill Button -->
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Port Badge -->
+                                        <Border Grid.Column="0" MinWidth="52" Height="26" CornerRadius="6" Background="{DynamicResource BrushReviewBg}" BorderBrush="{DynamicResource BrushWindowBorder}" BorderThickness="1" Padding="6,0" Margin="0,0,10,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding FormattedPort}" FontWeight="Bold" FontSize="11.5" Foreground="{DynamicResource BrushAccent}" FontFamily="{StaticResource FontText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+
+                                        <!-- Process / Description -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" FontFamily="{StaticResource FontText}"/>
+                                            <TextBlock Text="{Binding DisplayDetails}" FontSize="10" Foreground="{DynamicResource BrushTextMuted}" FontFamily="{StaticResource FontText}" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <!-- Status Badge (Free / Busy) -->
+                                        <Border Grid.Column="2" CornerRadius="5" Background="{Binding StatusBgBrush}" Padding="7,3" Margin="0,0,8,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding StatusLabel}" FontWeight="SemiBold" FontSize="9.5" Foreground="{Binding StatusFgBrush}" FontFamily="{StaticResource FontText}"/>
+                                        </Border>
+
+                                        <!-- Kill Single Port Button -->
+                                        <Button Grid.Column="3" Tag="{Binding}" Click="BtnKillSinglePort_Click" Visibility="{Binding KillVisibility}" Style="{StaticResource DangerIconButton}" ToolTip="Kill Process on this Port">
+                                            <TextBlock Text="&#xE711;" FontFamily="{StaticResource FontIcons}" FontSize="10" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+            <!-- END TAB 2: PORTS CONTAINER -->
+
+            <!-- ============================================== -->
+            <!-- TAB 3: RAM & TASKS GUARDIAN CONTAINER          -->
+            <!-- ============================================== -->
+            <Grid x:Name="TabTasksContainer" Visibility="Collapsed" Opacity="0">
+                <Grid.RenderTransform>
+                    <TranslateTransform x:Name="TransTasksTab" Y="6"/>
+                </Grid.RenderTransform>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Row 0: Header Info & Refresh -->
+                    <RowDefinition Height="Auto"/> <!-- Row 1: Runaway Alert Banner & Action -->
+                    <RowDefinition Height="*"/>    <!-- Row 2: Process Groups List -->
+                </Grid.RowDefinitions>
+
+                <!-- Row 0: Header Info & Refresh -->
+                <Grid Grid.Row="0" Margin="0,2,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtTasksHeaderTitle" Text="Dev Processes &amp; RAM" Foreground="{DynamicResource BrushTextPrimary}" FontSize="13.5" FontWeight="SemiBold" FontFamily="{StaticResource FontText}"/>
+                        <TextBlock x:Name="TxtTotalDevRam" Text="Total RAM: 0 MB" Foreground="{DynamicResource BrushTextSecondary}" FontSize="11" FontFamily="{StaticResource FontText}" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <!-- Refresh Tasks Button -->
+                    <Button x:Name="BtnRefreshTasks" Grid.Column="1" Click="BtnRefreshTasks_Click" Style="{StaticResource HeaderBtn}" ToolTip="Refresh Tasks" Width="28" Height="28">
+                        <TextBlock x:Name="IcoRefreshTasks" Text="&#xE72C;" FontFamily="{StaticResource FontIcons}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}"/>
+                    </Button>
+                </Grid>
+
+                <!-- Row 1: Runaway Alert Banner & Action Bar -->
+                <Border x:Name="BannerRunawayAlert" Grid.Row="1" Background="{DynamicResource BrushDangerBg}" BorderBrush="{DynamicResource BrushDanger}" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,12" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,10,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource FontIcons}" FontSize="12" Foreground="{DynamicResource BrushDanger}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                                <TextBlock x:Name="TxtAlertBannerTitle" Text="Runaway Loop Detected" FontWeight="Bold" FontSize="11.5" Foreground="{DynamicResource BrushDanger}" FontFamily="{StaticResource FontText}"/>
+                            </StackPanel>
+                            <TextBlock x:Name="TxtAlertBannerDesc" Text="High number of subshells or RAM usage found." FontSize="10" Foreground="{DynamicResource BrushTextPrimary}" FontFamily="{StaticResource FontText}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                        </StackPanel>
+
+                        <!-- Kill All Runaways Button inside Alert Banner -->
+                        <Button x:Name="BtnKillAllRunaways" Grid.Column="1" Click="BtnKillAllRunaways_Click" Height="30" Padding="12,0" Cursor="Hand" Background="{DynamicResource BrushDanger}" BorderThickness="0" VerticalAlignment="Center">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="6">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDangerHover}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                            <Setter Property="Cursor" Value="Arrow"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE74D;" FontFamily="{StaticResource FontIcons}" FontSize="10.5" Foreground="White" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtKillRunawaysBtn" Text="Kill Runaways" Foreground="White" FontWeight="Bold" FontSize="11" FontFamily="{StaticResource FontText}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <!-- Row 2: Process Groups List (Scrollable) -->
+                <ScrollViewer Grid.Row="2" MaxHeight="230" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="ItemsProcessGroups">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="8" Padding="12,9" Margin="0,0,0,6" Background="{DynamicResource BrushSubtleHover}" BorderBrush="{DynamicResource BrushWindowBorder}" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/> <!-- Icon Glyph -->
+                                            <ColumnDefinition Width="*"/>    <!-- Name & Stats -->
+                                            <ColumnDefinition Width="Auto"/> <!-- Alert Badge -->
+                                            <ColumnDefinition Width="Auto"/> <!-- Kill Button -->
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Process Icon Glyph -->
+                                        <Border Grid.Column="0" Width="30" Height="30" CornerRadius="6" Background="{DynamicResource BrushReviewBg}" Margin="0,0,10,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Glyph}" FontFamily="{StaticResource FontIcons}" FontSize="13" Foreground="{DynamicResource BrushAccent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+
+                                        <!-- Name & Stats -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" FontFamily="{StaticResource FontText}"/>
+                                                <Border Background="{DynamicResource BrushReviewBg}" CornerRadius="4" Padding="5,1" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding FormattedCount}" FontSize="9.5" Foreground="{DynamicResource BrushTextSecondary}" FontFamily="{StaticResource FontText}"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding FormattedMemory}" FontSize="10.5" Foreground="{DynamicResource BrushTextMuted}" FontFamily="{StaticResource FontText}" Margin="0,2,0,0"/>
+                                        </StackPanel>
+
+                                        <!-- Runaway Badge -->
+                                        <Border Grid.Column="2" Visibility="{Binding AlertBadgeVisibility}" CornerRadius="5" Background="{DynamicResource BrushDangerBg}" BorderBrush="{DynamicResource BrushDanger}" BorderThickness="1" Padding="6,2" Margin="0,0,8,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding AlertBadgeText}" FontWeight="Bold" FontSize="9.5" Foreground="{DynamicResource BrushDanger}" FontFamily="{StaticResource FontText}"/>
+                                        </Border>
+
+                                        <!-- Kill Group Button -->
+                                        <Button Grid.Column="3" Tag="{Binding}" Click="BtnKillGroup_Click" Visibility="{Binding KillVisibility}" Style="{StaticResource DangerPillButton}" ToolTip="Terminate all instances of this process tree">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="&#xE711;" FontFamily="{StaticResource FontIcons}" FontSize="9" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                <TextBlock Text="Kill" FontWeight="SemiBold" FontSize="10.5" FontFamily="{StaticResource FontText}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+            <!-- END TAB 3: RAM & TASKS GUARDIAN CONTAINER -->
+
+        </Grid>
+        <!-- END FULL CONTENT CONTAINER -->
+
+        </Grid>
+        <!-- END ROW 2: ACTIVE TAB CONTENT -->
+
+    </Grid>
+</Border>
+</Grid>
+</Window>
