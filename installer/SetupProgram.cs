@@ -18,6 +18,7 @@ namespace CleanDeskInstaller
             Application.SetCompatibleTextRenderingDefault(false);
 
             bool isSilent = false;
+            bool launch = false;
             foreach (var arg in args)
             {
                 if (arg.Equals("/S", StringComparison.OrdinalIgnoreCase) ||
@@ -25,6 +26,10 @@ namespace CleanDeskInstaller
                     arg.Equals("/VERYSILENT", StringComparison.OrdinalIgnoreCase))
                 {
                     isSilent = true;
+                }
+                if (arg.Equals("/LAUNCH", StringComparison.OrdinalIgnoreCase))
+                {
+                    launch = true;
                 }
             }
 
@@ -35,7 +40,7 @@ namespace CleanDeskInstaller
                     createDesktop: true,
                     createStartMenu: true,
                     addToStartup: true,
-                    launchAfter: false
+                    launchAfter: launch
                 );
                 return;
             }
@@ -65,7 +70,7 @@ namespace CleanDeskInstaller
 
         private void InitUI()
         {
-            this.Text = "Instalador de CleanDesk - Versión 1.0";
+            this.Text = "Instalador de CleanDesk - Versión 1.1";
             this.Size = new Size(540, 480);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -367,6 +372,7 @@ namespace CleanDeskInstaller
             ExtractResource("CleanDesk.exe", Path.Combine(installDir, "CleanDesk.exe"));
             ExtractResource("CleanDesk.exe.config", Path.Combine(installDir, "CleanDesk.exe.config"));
             ExtractResource("app.ico", Path.Combine(installDir, "app.ico"));
+            ExtractResource("tools_MultiMonitorTool.exe", Path.Combine(installDir, "tools", "MultiMonitorTool.exe"));
 
             string exePath = Path.Combine(installDir, "CleanDesk.exe");
             string icoPath = Path.Combine(installDir, "app.ico");
@@ -479,6 +485,8 @@ namespace CleanDeskInstaller
             using (var stream = asm.GetManifestResourceStream(resourceName))
             {
                 if (stream == null) return;
+                string dir = Path.GetDirectoryName(outputPath);
+                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir)) Directory.CreateDirectory(dir);
                 using (var fs = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None))
                 {
                     stream.CopyTo(fs);
@@ -509,7 +517,7 @@ rmdir /s /q ""{0}"" 2>nul
                     if (key != null)
                     {
                         key.SetValue("DisplayName", "CleanDesk Widget");
-                        key.SetValue("DisplayVersion", "1.0.0");
+                        key.SetValue("DisplayVersion", "1.1.0");
                         key.SetValue("Publisher", "FaberOs");
                         key.SetValue("DisplayIcon", icoPath);
                         key.SetValue("UninstallString", Path.Combine(installDir, "uninstall.bat"));
