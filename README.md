@@ -7,7 +7,7 @@
 
 **CleanDesk** es un widget de escritorio nativo, minimalista y ultra ligero para Windows 11 y 10, diseñado específicamente como la herramienta definitiva de productividad para desarrolladores de software, ingenieros y power users.
 
-Combina en una única interfaz flotante Fluent 2 la solución a las tres fricciones más frustrantes del día a día en desarrollo: **puertos locales bloqueados**, **procesos zombis devoradores de RAM** y **acumulación de cachés y basura del sistema**.
+Combina en una única interfaz flotante Fluent 2 la solución a las fricciones más frustrantes del día a día en desarrollo: **puertos locales bloqueados**, **procesos zombis devoradores de RAM**, **acumulación de cachés del sistema** y **gestión instantánea de perfiles de pantallas multi-monitor**.
 
 ---
 
@@ -21,7 +21,7 @@ Combina en una única interfaz flotante Fluent 2 la solución a las tres friccio
 * **La solución CleanDesk:**  
   * Inspecciona la tabla de sockets TCP en tiempo real con latencia **< 5 ms** usando la API nativa de Win32 (`GetExtendedTcpTable`).
   * Identifica al instante el PID y el nombre del ejecutable que retiene el puerto.
-  * Botón de **1-clic** para liberar cualquier puerto individualmente o el botón **"Kill Selected Ports"** para liberar todos los puertos de prueba ocupados simultáneamente.
+  * Botón de **1-clic** para liberar cualquier puerto individualmente o el botón **"Kill Busy Ports"** para liberar todos los puertos de prueba ocupados simultáneamente.
   * Incluye un buscador dinámico para agregar cualquier puerto personalizado (ej. `4000`, `9000`, etc.).
 
 ---
@@ -37,7 +37,19 @@ Combina en una única interfaz flotante Fluent 2 la solución a las tres friccio
 
 ---
 
-### 3. 🧹 Limpiador Integral del Sistema y Cachés Dev
+### 3. 🖥️ Gestor de Pantallas & Perfiles Multi-Monitor (Display Presets)
+* **El dolor habitual:**  
+  En estaciones de trabajo con 2 o 3 monitores (por ejemplo: un monitor ultrapanorámico principal de 34", pantalla integrada de laptop y un monitor vertical secundario), cambiar a modo de pantalla única para jugar videojuegos (*Modo Gaming*) o para presentaciones, y luego regresar al setup completo de trabajo, suele desordenar ventanas, desconfigurar resoluciones y tasas de refresco (Hz), o requerir múltiples clics tediosos en el menú de Configuración de Windows. Además, cuando una pantalla queda inactiva por software, Windows suele ocultarla impidiendo reactivarla limpiamente.
+* **La solución CleanDesk:**  
+  * **Integración transparente de MultiMonitorTool (NirSoft):** Empaquetado e integrado de forma nativa sin requerir configuraciones adicionales por parte del usuario (incluye descarga y respaldo automático).
+  * **Detección inteligente de hardware:** Inspecciona las salidas de vídeo físicas reales mediante Win32 y WMI (`EnumDisplayDevices`), identificando correctamente monitores activos e inactivos.
+  * **Cambio de Perfiles en 1 Clic:** Alterna al instante entre setups completos (ej. *Setup 3 Pantallas*) y modos focalizados (ej. *Modo Gaming — Solo Xiaomi 34"*).
+  * **Guardado de Perfiles Personalizados:** Captura en tiempo real la disposición física exacta (coordenadas espaciales X/Y, resolución, frecuencia de actualización Hz, orientación y monitor principal).
+  * **Acceso desde Bandeja del Sistema y Modo Compacto:** Conmuta perfiles directamente desde el menú del System Tray o desde la píldora compacta de escritorio.
+
+---
+
+### 4. 🧹 Limpiador Integral del Sistema y Cachés Dev
 * **El dolor habitual:**  
   Cachés de paquetes (`npm-cache`, `pip cache`), volcados de memoria por errores (`MEMORY.DMP`, `CrashDumps`), shaders residuales de DirectX y miles de archivos en `%TEMP%` saturan el disco de tu máquina y degradan el rendimiento de los discos SSD.
 * **La solución CleanDesk:**  
@@ -47,12 +59,12 @@ Combina en una única interfaz flotante Fluent 2 la solución a las tres friccio
 
 ---
 
-### 4. 🪟 Experiencia Auténtica de Widget (Windows 11 Fluent 2)
+### 5. 🪟 Experiencia Auténtica de Widget (Windows 11 Fluent 2)
 * **El dolor habitual:**  
   La gran mayoría de optimizadores de sistema son aplicaciones intrusivas, pesadas, plagadas de publicidad y ocupan espacio valioso en la barra de tareas.
 * **La solución CleanDesk:**  
   * **Sin barra de tareas:** Reside discretamente en los iconos ocultos de la bandeja del sistema (*System Tray / Hidden Icons*).
-  * **Modo Compacto:** Se contrae en una píldora minimalista de escritorio con un **micro-carrusel táctil** controlable con la rueda del ratón (`MouseWheel`) para consultar métricas y ejecutar limpiezas con 1 solo clic.
+  * **Modo Compacto:** Se contrae en una píldora minimalista de escritorio con un **micro-carrusel táctil** controlable con la rueda del ratón (`MouseWheel`) para consultar métricas y ejecutar acciones con 1 solo clic.
   * **Diseño Fluent 2:** Esquinas redondeadas, desenfoque acrílico, transiciones a 60 FPS, tipografía Segoe UI Variable y soporte para Modo Oscuro y Modo Claro según la configuración de tu sistema.
   * **Menú Contextual Avanzado:** Clic derecho sobre el icono en la bandeja para mostrar/ocultar, cambiar de modo, escanear o liberar puertos directamente.
 
@@ -63,7 +75,7 @@ Combina en una única interfaz flotante Fluent 2 la solución a las tres friccio
 Para utilizar CleanDesk no necesitas compilar código ni configurar dependencias:
 
 1. Ve a la sección de **[Releases Oficiales](https://github.com/FaberOs/CleanDesk/releases/latest)**.
-2. Descarga el instalador oficial de Windows: **`CleanDesk-v1.0-Setup.exe`**.
+2. Descarga el instalador oficial de Windows: **`CleanDesk-v1.1-Setup.exe`**.
 3. Ejecuta el asistente de instalación.
 
 El instalador te permite personalizar la configuración a tu medida:
@@ -88,4 +100,5 @@ CleanDesk detecta de forma nativa el idioma de tu sistema operativo:
 ## 👤 Autor
 
 Desarrollado con dedicación por **[FaberOs](https://github.com/FaberOs)**.  
+Agradecimiento especial a Nir Sofer por la utilidad *MultiMonitorTool* integrada en el gestor de pantallas.  
 Licencia MIT.
