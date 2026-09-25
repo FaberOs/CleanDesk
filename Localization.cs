@@ -211,7 +211,7 @@ namespace CleanDesk
 
         public static string TabTasks
         {
-            get { return IsSpanish ? "RAM & Tareas" : "RAM & Tasks"; }
+            get { return IsSpanish ? "Tareas" : "Tasks"; }
         }
 
         // KillerPort Strings
@@ -311,6 +311,72 @@ namespace CleanDesk
                 case "recyclebin": return IsSpanish ? "Elementos eliminados en disco" : "Deleted files on disk";
                 default: return "";
             }
+        }
+
+        // Display Manager Localized Strings
+        public static string TabDisplays
+        {
+            get { return IsSpanish ? "Pantallas" : "Displays"; }
+        }
+
+        public static string DisplaysTitle
+        {
+            get { return IsSpanish ? "Gestor de Pantallas" : "Display Manager"; }
+        }
+
+        public static string DisplaysSubtitle
+        {
+            get { return IsSpanish ? "Perfiles rápidos y disposición física" : "Quick presets & physical layout"; }
+        }
+
+        public static string ConnectedMonitors
+        {
+            get { return IsSpanish ? "Monitores Conectados" : "Connected Displays"; }
+        }
+
+        public static string DisplayProfiles
+        {
+            get { return IsSpanish ? "Perfiles" : "Presets"; }
+        }
+
+        public static string SaveCurrentProfile
+        {
+            get { return IsSpanish ? "Guardar actual" : "Save current"; }
+        }
+
+        public static string EnterProfileNamePlaceholder
+        {
+            get { return IsSpanish ? "Nombre del perfil..." : "Profile name..."; }
+        }
+
+        public static string SaveBtn
+        {
+            get { return IsSpanish ? "Guardar" : "Save"; }
+        }
+
+        public static string CancelBtn
+        {
+            get { return IsSpanish ? "Cancelar" : "Cancel"; }
+        }
+
+        public static string ActiveBadge
+        {
+            get { return IsSpanish ? "ACTIVO" : "ACTIVE"; }
+        }
+
+        public static string ApplyBtn
+        {
+            get { return IsSpanish ? "Aplicar" : "Apply"; }
+        }
+
+        public static string DeleteBtn
+        {
+            get { return IsSpanish ? "Eliminar" : "Delete"; }
+        }
+
+        public static string MissingMonitors
+        {
+            get { return IsSpanish ? "Faltan monitores desconectados" : "Missing disconnected monitors"; }
         }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -26,7 +27,8 @@ namespace CleanDesk
     {
         Clean,
         Ports,
-        Tasks
+        Tasks,
+        Displays
     }
 
     public partial class MainWindow : Window
@@ -39,6 +41,8 @@ namespace CleanDesk
 
         private ObservableCollection<PortItem> _portsList = new ObservableCollection<PortItem>();
         private ObservableCollection<ProcessGroupItem> _processGroups = new ObservableCollection<ProcessGroupItem>();
+        private ObservableCollection<MonitorItem> _monitorsList = new ObservableCollection<MonitorItem>();
+        private ObservableCollection<DisplayProfileItem> _displayProfiles = new ObservableCollection<DisplayProfileItem>();
         private HashSet<int> _customPorts = new HashSet<int>();
         private bool _isScanningClean = false;
         private bool _isCleaningNow = false;
@@ -47,9 +51,11 @@ namespace CleanDesk
         private bool _isKillingPorts = false;
         private bool _isScanningTasks = false;
         private bool _isKillingTasks = false;
+        private bool _isLoadingDisplays = false;
+        private bool _isApplyingDisplayProfile = false;
         private bool _isSwitchingCompactFeature = false;
         private bool _isSwitchingTab = false;
-        private int _compactFeatureIndex = 0; // 0 = Clean, 1 = Ports, 2 = Tasks
+        private int _compactFeatureIndex = 0; // 0 = Clean, 1 = Ports, 2 = Tasks, 3 = Displays
 
         private System.Windows.Forms.NotifyIcon _notifyIcon = null;
         private System.Windows.Forms.ContextMenuStrip _trayMenu = null;
@@ -66,6 +72,7 @@ namespace CleanDesk
             Loaded += MainWindow_Loaded;
             SizeChanged += MainWindow_SizeChanged;
             SystemEvents.UserPreferenceChanged += SystemEvents_UserPreferenceChanged;
+            SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanged;
             Closed += MainWindow_Closed;
         }
 
@@ -88,7 +95,19 @@ namespace CleanDesk
                 _arcTimer.Stop();
             }
             SystemEvents.UserPreferenceChanged -= SystemEvents_UserPreferenceChanged;
+            SystemEvents.DisplaySettingsChanged -= SystemEvents_DisplaySettingsChanged;
             DisposeNotifyIcon();
+        }
+
+        private void SystemEvents_DisplaySettingsChanged(object sender, EventArgs e)
+        {
+            Dispatcher.Invoke(new Action(async () =>
+            {
+                if (_currentTab == WidgetTab.Displays || _currentState == WidgetViewState.Compact)
+                {
+                    await LoadDisplaysDataAsync();
+                }
+            }));
         }
 
         private void SystemEvents_UserPreferenceChanged(object sender, UserPreferenceChangedEventArgs e)
@@ -101,25 +120,32 @@ namespace CleanDesk
 
         private void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
-            InitArcTimer();
-
             try
             {
-                this.Icon = AppIconHelper.GetAppImageSource();
-                AppIconHelper.EnsureIconFiles();
-                AppIconHelper.UpdateDesktopShortcut();
-                InitNotifyIcon();
+                InitArcTimer();
+
+                try
+                {
+                    this.Icon = AppIconHelper.GetAppImageSource();
+                    AppIconHelper.EnsureIconFiles();
+                    AppIconHelper.UpdateDesktopShortcut();
+                    InitNotifyIcon();
+                }
+                catch { }
+
+                var workArea = SystemParameters.WorkArea;
+                this.Left = Math.Max(16, workArea.Right - this.ActualWidth - 24);
+                this.Top = Math.Max(16, workArea.Bottom - this.ActualHeight - 24);
+                _baseTop = this.Top;
+
+                ApplySystemTheme();
+                ApplyLocalization();
+                SetViewState(WidgetViewState.ReadyToScan, animate: false);
             }
-            catch { }
-
-            var workArea = SystemParameters.WorkArea;
-            this.Left = Math.Max(16, workArea.Right - this.ActualWidth - 24);
-            this.Top = Math.Max(16, workArea.Bottom - this.ActualHeight - 24);
-            _baseTop = this.Top;
-
-            ApplySystemTheme();
-            ApplyLocalization();
-            SetViewState(WidgetViewState.ReadyToScan, animate: false);
+            catch (Exception ex)
+            {
+                try { File.WriteAllText(System.IO.Path.Combine(System.IO.Path.GetTempPath(), "cleandesk_crash.log"), "Crash in MainWindow_Loaded: " + ex.ToString()); } catch { }
+            }
         }
 
         private void MainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -192,6 +218,7 @@ namespace CleanDesk
                 SetColor("BrushTextMuted", "#94A3B8");
                 SetColor("BrushAccent", "#1D72FE");
                 SetColor("BrushAccentHover", "#1562DF");
+                SetColor("BrushAccentText", "#1D72FE");
                 SetColor("BrushReviewBg", "#F1F5F9");
                 SetColor("BrushReviewHover", "#E2E8F0");
                 SetColor("BrushReviewText", "#0F172A");
@@ -229,6 +256,7 @@ namespace CleanDesk
                 SetColor("BrushTextMuted", "#64748B");
                 SetColor("BrushAccent", "#1D72FE");
                 SetColor("BrushAccentHover", "#1562DF");
+                SetColor("BrushAccentText", "#60A5FA");
                 SetColor("BrushReviewBg", "#2A303C");
                 SetColor("BrushReviewHover", "#353D4C");
                 SetColor("BrushReviewText", "#F1F5F9");
@@ -301,6 +329,7 @@ namespace CleanDesk
             TabBtnClean.Content = Strings.TabClean;
             TabBtnPorts.Content = Strings.TabPorts;
             TabBtnTasks.Content = Strings.TabTasks;
+            TabBtnDisplays.Content = Strings.TabDisplays;
 
             // Ports tab
             TxtPortsHeaderTitle.Text = Strings.IsSpanish ? "Puertos Dev en Escucha" : "Listening Dev Ports";
@@ -313,6 +342,13 @@ namespace CleanDesk
             TxtAlertBannerTitle.Text = Strings.RunawayAlertTitle;
             TxtAlertBannerDesc.Text = Strings.RunawayAlertDesc;
             TxtKillRunawaysBtn.Text = Strings.KillAllRunaways;
+
+            // Displays tab
+            TxtDisplaysHeaderTitle.Text = Strings.DisplaysTitle;
+            TxtDisplaysHeaderDesc.Text = Strings.DisplaysSubtitle;
+            TxtConnectedMonitorsTitle.Text = Strings.ConnectedMonitors.ToUpper();
+            TxtProfilesTitle.Text = Strings.DisplayProfiles.ToUpper();
+            TxtAddProfileBtn.Text = Strings.SaveCurrentProfile;
 
             // Actualizar textos de categorías
             if (_categories != null)
@@ -394,7 +430,7 @@ namespace CleanDesk
                 }
                 else
                 {
-                    this.Width = 396;
+                    this.Width = 412;
                     NavigationBarBorder.Visibility = Visibility.Visible;
                     FullContentContainer.Visibility = Visibility.Visible;
                     BtnExpandCompact.Visibility = Visibility.Collapsed;
@@ -403,7 +439,7 @@ namespace CleanDesk
             }
 
             // Animación suave de ancho entre vista Completa y Compacta
-            double targetWidth = (newState == WidgetViewState.Compact) ? 330 : 396;
+            double targetWidth = (newState == WidgetViewState.Compact) ? 330 : 412;
             if (Math.Abs(this.Width - targetWidth) > 1)
             {
                 var animW = new DoubleAnimation(targetWidth, TimeSpan.FromMilliseconds(260))
@@ -862,10 +898,12 @@ namespace CleanDesk
             WidgetTab targetTab = WidgetTab.Clean;
             if (_compactFeatureIndex == 1) targetTab = WidgetTab.Ports;
             else if (_compactFeatureIndex == 2) targetTab = WidgetTab.Tasks;
+            else if (_compactFeatureIndex == 3) targetTab = WidgetTab.Displays;
 
             TabBtnClean.IsChecked = (targetTab == WidgetTab.Clean);
             TabBtnPorts.IsChecked = (targetTab == WidgetTab.Ports);
             TabBtnTasks.IsChecked = (targetTab == WidgetTab.Tasks);
+            TabBtnDisplays.IsChecked = (targetTab == WidgetTab.Displays);
 
             await SwitchTabAsync(targetTab);
         }
@@ -875,8 +913,8 @@ namespace CleanDesk
         private void SwitchCompactFeature(int targetIndex, bool animate = true)
         {
             if (_isSwitchingCompactFeature) return;
-            if (targetIndex < 0) targetIndex = 2;
-            if (targetIndex > 2) targetIndex = 0;
+            if (targetIndex < 0) targetIndex = 3;
+            if (targetIndex > 3) targetIndex = 0;
 
             int oldIndex = _compactFeatureIndex;
             if (oldIndex == targetIndex && IsLoaded && _currentState == WidgetViewState.Compact) return;
@@ -887,9 +925,9 @@ namespace CleanDesk
                 _isSwitchingCompactFeature = true;
             }
 
-            FrameworkElement[] cards = new FrameworkElement[] { CompactCardClean, CompactCardPorts, CompactCardTasks };
-            TranslateTransform[] trans = new TranslateTransform[] { TransCompactClean, TransCompactPorts, TransCompactTasks };
-            Border[] dots = new Border[] { DotCompactClean, DotCompactPorts, DotCompactTasks };
+            FrameworkElement[] cards = new FrameworkElement[] { CompactCardClean, CompactCardPorts, CompactCardTasks, CompactCardDisplays };
+            TranslateTransform[] trans = new TranslateTransform[] { TransCompactClean, TransCompactPorts, TransCompactTasks, TransCompactDisplays };
+            Border[] dots = new Border[] { DotCompactClean, DotCompactPorts, DotCompactTasks, DotCompactDisplays };
 
             // Detener cualquier animación previa para evitar colisiones
             for (int i = 0; i < cards.Length; i++)
@@ -924,7 +962,7 @@ namespace CleanDesk
             // Cross-fade & horizontal slide transition between feature cards
             if (oldIndex != targetIndex && animate && IsLoaded)
             {
-                int dir = (targetIndex > oldIndex || (oldIndex == 2 && targetIndex == 0)) && !(oldIndex == 0 && targetIndex == 2) ? 1 : -1;
+                int dir = (targetIndex > oldIndex || (oldIndex == 3 && targetIndex == 0)) && !(oldIndex == 0 && targetIndex == 3) ? 1 : -1;
 
                 var oldCard = cards[oldIndex];
                 var oldTrans = trans[oldIndex];
@@ -996,6 +1034,10 @@ namespace CleanDesk
             else if (_compactFeatureIndex == 2 && _processGroups.Count == 0 && !_isScanningTasks && !_isKillingTasks)
             {
                 var ignored = RefreshTasksAsync();
+            }
+            else if (_compactFeatureIndex == 3 && _displayProfiles.Count == 0 && !_isLoadingDisplays && !_isApplyingDisplayProfile)
+            {
+                var ignored = LoadDisplaysDataAsync();
             }
         }
 
@@ -1105,6 +1147,63 @@ namespace CleanDesk
                     BtnCompactTasksAction.Visibility = Visibility.Collapsed;
                 }
             }
+
+            // 4. Displays Feature
+            TxtCompactDisplaysTag.Text = Strings.IsSpanish ? "PANTALLAS" : "DISPLAYS";
+            if (_isLoadingDisplays || _isApplyingDisplayProfile)
+            {
+                TxtCompactDisplaysTitle.Text = Strings.IsSpanish ? "Cambiando..." : "Switching...";
+                TxtCompactDisplaysDesc.Text = Strings.IsSpanish ? "Aplicando perfil..." : "Applying preset...";
+                BtnCompactDisplaysAction.IsEnabled = false;
+            }
+            else
+            {
+                BtnCompactDisplaysAction.IsEnabled = true;
+                var activeProfile = _displayProfiles.FirstOrDefault(p => p.IsActive);
+                var gamingProfile = _displayProfiles.FirstOrDefault(p => p.Name.IndexOf("Gaming", StringComparison.OrdinalIgnoreCase) >= 0 || p.Name.IndexOf("Xiaomi", StringComparison.OrdinalIgnoreCase) >= 0);
+                var setupProfile = _displayProfiles.FirstOrDefault(p => p.Name.IndexOf("Tres", StringComparison.OrdinalIgnoreCase) >= 0 || p.Name.IndexOf("Setup", StringComparison.OrdinalIgnoreCase) >= 0);
+
+                if (activeProfile != null)
+                {
+                    string shortTitle = activeProfile.Name;
+                    if (shortTitle.IndexOf("Tres", StringComparison.OrdinalIgnoreCase) >= 0 || shortTitle.IndexOf("Setup", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        shortTitle = Strings.IsSpanish ? "Setup 3 Pantallas" : "3 Displays Setup";
+                    }
+                    else if (shortTitle.IndexOf("Gaming", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        shortTitle = Strings.IsSpanish ? "Modo Gaming" : "Gaming Mode";
+                    }
+                    TxtCompactDisplaysTitle.Text = shortTitle;
+
+                    if (activeProfile == setupProfile)
+                    {
+                        TxtCompactDisplaysDesc.Text = Strings.IsSpanish ? "3 pantallas activas" : "3 active displays";
+                        IcoCompactDisplaysAction.Text = "\uE7FC";
+                        TxtCompactDisplaysAction.Text = "Gaming";
+                    }
+                    else if (activeProfile == gamingProfile)
+                    {
+                        TxtCompactDisplaysDesc.Text = Strings.IsSpanish ? "Solo Xiaomi 34\"" : "Xiaomi 34\" only";
+                        IcoCompactDisplaysAction.Text = "\uE7F4";
+                        TxtCompactDisplaysAction.Text = Strings.IsSpanish ? "3 Pantallas" : "3 Displays";
+                    }
+                    else
+                    {
+                        TxtCompactDisplaysDesc.Text = activeProfile.Summary;
+                        IcoCompactDisplaysAction.Text = "\uE7FC";
+                        TxtCompactDisplaysAction.Text = Strings.IsSpanish ? "Alternar" : "Toggle";
+                    }
+                }
+                else
+                {
+                    int screenCount = _monitorsList.Count > 0 ? _monitorsList.Count : System.Windows.Forms.Screen.AllScreens.Length;
+                    TxtCompactDisplaysTitle.Text = Strings.IsSpanish ? string.Format("{0} Pantallas", screenCount) : string.Format("{0} Displays", screenCount);
+                    TxtCompactDisplaysDesc.Text = Strings.IsSpanish ? "3 Pantallas / Gaming" : "3 Displays / Gaming";
+                    IcoCompactDisplaysAction.Text = "\uE7FC";
+                    TxtCompactDisplaysAction.Text = Strings.IsSpanish ? "Cambiar" : "Switch";
+                }
+            }
         }
 
         private void BtnCompactPrev_Click(object sender, RoutedEventArgs e)
@@ -1130,6 +1229,11 @@ namespace CleanDesk
         private void DotCompactTasks_MouseDown(object sender, MouseButtonEventArgs e)
         {
             SwitchCompactFeature(2);
+        }
+
+        private void DotCompactDisplays_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            SwitchCompactFeature(3);
         }
 
         private void CompactWidgetContainer_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -1287,6 +1391,46 @@ namespace CleanDesk
             }
         }
 
+        private async void BtnCompactDisplaysAction_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isApplyingDisplayProfile || _isLoadingDisplays) return;
+
+            if (_displayProfiles.Count == 0)
+            {
+                await LoadDisplaysDataAsync();
+            }
+
+            var gamingProfile = _displayProfiles.FirstOrDefault(p => p.Name.IndexOf("Gaming", StringComparison.OrdinalIgnoreCase) >= 0 || p.Name.IndexOf("Xiaomi", StringComparison.OrdinalIgnoreCase) >= 0);
+            var setupProfile = _displayProfiles.FirstOrDefault(p => p.Name.IndexOf("Tres", StringComparison.OrdinalIgnoreCase) >= 0 || p.Name.IndexOf("Setup", StringComparison.OrdinalIgnoreCase) >= 0);
+
+            DisplayProfileItem targetProfile = null;
+            if (gamingProfile != null && gamingProfile.IsActive && setupProfile != null)
+            {
+                targetProfile = setupProfile;
+            }
+            else if (setupProfile != null && setupProfile.IsActive && gamingProfile != null)
+            {
+                targetProfile = gamingProfile;
+            }
+            else if (gamingProfile != null && !gamingProfile.IsActive)
+            {
+                targetProfile = gamingProfile;
+            }
+            else if (setupProfile != null && !setupProfile.IsActive)
+            {
+                targetProfile = setupProfile;
+            }
+            else
+            {
+                targetProfile = _displayProfiles.FirstOrDefault(p => !p.IsActive) ?? _displayProfiles.FirstOrDefault();
+            }
+
+            if (targetProfile != null)
+            {
+                await ApplyDisplayProfileInternalAsync(targetProfile);
+            }
+        }
+
         #endregion
 
         private async void BtnScanPC_Click(object sender, RoutedEventArgs e)
@@ -1317,6 +1461,7 @@ namespace CleanDesk
             WidgetTab targetTab;
             if (tag == "Ports") targetTab = WidgetTab.Ports;
             else if (tag == "Tasks") targetTab = WidgetTab.Tasks;
+            else if (tag == "Displays") targetTab = WidgetTab.Displays;
             else targetTab = WidgetTab.Clean;
 
             if (_currentTab == targetTab && IsLoaded) return;
@@ -1336,6 +1481,7 @@ namespace CleanDesk
                 if (newTab == WidgetTab.Clean) _compactFeatureIndex = 0;
                 else if (newTab == WidgetTab.Ports) _compactFeatureIndex = 1;
                 else if (newTab == WidgetTab.Tasks) _compactFeatureIndex = 2;
+                else if (newTab == WidgetTab.Displays) _compactFeatureIndex = 3;
 
                 FrameworkElement oldElem = GetTabElement(oldTab);
                 FrameworkElement newElem = GetTabElement(newTab);
@@ -1396,6 +1542,10 @@ namespace CleanDesk
                 {
                     await RefreshTasksAsync();
                 }
+                else if (newTab == WidgetTab.Displays)
+                {
+                    await LoadDisplaysDataAsync();
+                }
             }
             finally
             {
@@ -1410,6 +1560,7 @@ namespace CleanDesk
                 case WidgetTab.Clean: return TabCleanContainer;
                 case WidgetTab.Ports: return TabPortsContainer;
                 case WidgetTab.Tasks: return TabTasksContainer;
+                case WidgetTab.Displays: return TabDisplaysContainer;
                 default: return TabCleanContainer;
             }
         }
@@ -1421,6 +1572,7 @@ namespace CleanDesk
                 case WidgetTab.Clean: return TransCleanTab;
                 case WidgetTab.Ports: return TransPortsTab;
                 case WidgetTab.Tasks: return TransTasksTab;
+                case WidgetTab.Displays: return TransDisplaysTab;
                 default: return TransCleanTab;
             }
         }
@@ -1805,6 +1957,153 @@ namespace CleanDesk
 
         #endregion
 
+        #region Displays Engine (DisplayManager)
+
+        private async Task LoadDisplaysDataAsync()
+        {
+            if (_isLoadingDisplays || _isApplyingDisplayProfile) return;
+            _isLoadingDisplays = true;
+            BtnRefreshDisplays.IsEnabled = false;
+            StartRotateAnimation(IcoRefreshDisplays);
+            UpdateCompactUI();
+
+            if (ItemsConnectedMonitors.ItemsSource == null)
+            {
+                ItemsConnectedMonitors.ItemsSource = _monitorsList;
+            }
+            if (ItemsDisplayProfiles.ItemsSource == null)
+            {
+                ItemsDisplayProfiles.ItemsSource = _displayProfiles;
+            }
+
+            try
+            {
+                await DisplayManager.EnsureDefaultProfilesAsync();
+
+                var monitors = await DisplayManager.GetConnectedMonitorsAsync();
+                _monitorsList.Clear();
+                foreach (var m in monitors)
+                {
+                    _monitorsList.Add(m);
+                }
+
+                var profiles = await DisplayManager.GetProfilesAsync();
+                _displayProfiles.Clear();
+                foreach (var p in profiles)
+                {
+                    _displayProfiles.Add(p);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error loading displays: " + ex.Message);
+            }
+            finally
+            {
+                StopRotateAnimation(IcoRefreshDisplays);
+                _isLoadingDisplays = false;
+                BtnRefreshDisplays.IsEnabled = true;
+                UpdateCompactUI();
+            }
+        }
+
+        private async void BtnRefreshDisplays_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadDisplaysDataAsync();
+        }
+
+        private void BtnShowAddProfile_Click(object sender, RoutedEventArgs e)
+        {
+            PanelAddProfile.Visibility = Visibility.Visible;
+            TxtNewProfileName.Text = "";
+            TxtNewProfileName.Focus();
+        }
+
+        private void BtnCancelAddProfile_Click(object sender, RoutedEventArgs e)
+        {
+            PanelAddProfile.Visibility = Visibility.Collapsed;
+            TxtNewProfileName.Text = "";
+        }
+
+        private async void BtnConfirmSaveProfile_Click(object sender, RoutedEventArgs e)
+        {
+            string profileName = (TxtNewProfileName.Text != null) ? TxtNewProfileName.Text.Trim() : null;
+            if (string.IsNullOrWhiteSpace(profileName))
+            {
+                TxtNewProfileName.Focus();
+                return;
+            }
+
+            BtnConfirmSaveProfile.IsEnabled = false;
+            try
+            {
+                bool success = await DisplayManager.SaveCurrentProfileAsync(profileName);
+                if (success)
+                {
+                    PanelAddProfile.Visibility = Visibility.Collapsed;
+                    TxtNewProfileName.Text = "";
+                    await LoadDisplaysDataAsync();
+                }
+            }
+            finally
+            {
+                BtnConfirmSaveProfile.IsEnabled = true;
+            }
+        }
+
+        private async void BtnApplyProfile_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as FrameworkElement;
+            var profile = (btn != null) ? btn.Tag as DisplayProfileItem : null;
+            if (profile == null) return;
+
+            await ApplyDisplayProfileInternalAsync(profile);
+        }
+
+        private async Task ApplyDisplayProfileInternalAsync(DisplayProfileItem profile)
+        {
+            if (_isApplyingDisplayProfile) return;
+            _isApplyingDisplayProfile = true;
+
+            try
+            {
+                await DisplayManager.ApplyProfileAsync(profile);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("Error applying display profile: " + ex.Message);
+            }
+
+            _isApplyingDisplayProfile = false;
+            await Task.Delay(1000);
+            await LoadDisplaysDataAsync();
+            UpdateCompactUI();
+        }
+
+        private async void BtnDeleteProfile_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as FrameworkElement;
+            var profile = (btn != null) ? btn.Tag as DisplayProfileItem : null;
+            if (profile == null) return;
+
+            string confirmMsg = Strings.IsSpanish 
+                ? string.Format("¿Deseas eliminar el perfil '{0}'?", profile.Name)
+                : string.Format("Do you want to delete profile '{0}'?", profile.Name);
+
+            var result = MessageBox.Show(confirmMsg, "CleanDesk", MessageBoxButton.YesNo, MessageBoxImage.Question);
+            if (result == MessageBoxResult.Yes)
+            {
+                bool deleted = await DisplayManager.DeleteProfileAsync(profile);
+                if (deleted)
+                {
+                    _displayProfiles.Remove(profile);
+                    UpdateCompactUI();
+                }
+            }
+        }
+
+        #endregion
+
         #region System Tray & Widget Visibility (Hidden Icons)
 
         private void InitNotifyIcon()
@@ -2025,7 +2324,40 @@ namespace CleanDesk
 
             _trayMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
 
-            // 6. Salir de CleanDesk
+            // 6. Perfiles de Pantalla
+            var miDisplays = new System.Windows.Forms.ToolStripMenuItem(
+                Strings.IsSpanish ? "🖥️  Perfiles de Pantalla" : "🖥️  Display Presets"
+            );
+            miDisplays.Font = new System.Drawing.Font("Segoe UI", 9.25f, System.Drawing.FontStyle.Regular);
+            miDisplays.Padding = new System.Windows.Forms.Padding(12, 6, 12, 6);
+
+            var miGaming = new System.Windows.Forms.ToolStripMenuItem(
+                Strings.IsSpanish ? "🎮  Modo Gaming (Solo Xiaomi)" : "🎮  Gaming Mode (Xiaomi Only)",
+                null,
+                (s, e) => Dispatcher.Invoke(new Action(async () =>
+                {
+                    if (_displayProfiles.Count == 0) await LoadDisplaysDataAsync();
+                    var p = _displayProfiles.FirstOrDefault(x => x.Name.IndexOf("Gaming", StringComparison.OrdinalIgnoreCase) >= 0 || x.Name.IndexOf("Xiaomi", StringComparison.OrdinalIgnoreCase) >= 0);
+                    if (p != null) await ApplyDisplayProfileInternalAsync(p);
+                }))
+            );
+            var miSetup = new System.Windows.Forms.ToolStripMenuItem(
+                Strings.IsSpanish ? "💻  Setup (3 Pantallas)" : "💻  Setup (3 Displays)",
+                null,
+                (s, e) => Dispatcher.Invoke(new Action(async () =>
+                {
+                    if (_displayProfiles.Count == 0) await LoadDisplaysDataAsync();
+                    var p = _displayProfiles.FirstOrDefault(x => x.Name.IndexOf("Tres", StringComparison.OrdinalIgnoreCase) >= 0 || x.Name.IndexOf("Setup", StringComparison.OrdinalIgnoreCase) >= 0);
+                    if (p != null) await ApplyDisplayProfileInternalAsync(p);
+                }))
+            );
+            miDisplays.DropDownItems.Add(miGaming);
+            miDisplays.DropDownItems.Add(miSetup);
+            _trayMenu.Items.Add(miDisplays);
+
+            _trayMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
+
+            // 7. Salir de CleanDesk
             string exitText = (Strings.IsSpanish ? "✕   Salir de CleanDesk" : "✕   Exit CleanDesk");
             var miExit = new System.Windows.Forms.ToolStripMenuItem(
                 exitText,
