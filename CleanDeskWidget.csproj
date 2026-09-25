@@ -47,6 +47,8 @@
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -70,6 +72,7 @@
     <Compile Include="PortManager.cs" />
     <Compile Include="ProcessGuardian.cs" />
     <Compile Include="AppIconHelper.cs" />
+    <Compile Include="DisplayManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -80,5 +83,7 @@
   <Target Name="AfterBuild">
     <Copy SourceFiles="$(OutputPath)$(TargetFileName)" DestinationFolder="$(ProjectDir)" SkipUnchangedFiles="false" ContinueOnError="true" />
     <Copy SourceFiles="$(OutputPath)$(TargetFileName).config" DestinationFolder="$(ProjectDir)" Condition="Exists('$(OutputPath)$(TargetFileName).config')" SkipUnchangedFiles="false" ContinueOnError="true" />
+    <MakeDir Directories="$(OutputPath)tools" Condition="!Exists('$(OutputPath)tools')" />
+    <Copy SourceFiles="$(ProjectDir)tools\MultiMonitorTool.exe" DestinationFolder="$(OutputPath)tools" Condition="Exists('$(ProjectDir)tools\MultiMonitorTool.exe')" SkipUnchangedFiles="true" ContinueOnError="true" />
   </Target>
 </Project>
