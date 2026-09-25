@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="CleanDesk" 
         Height="Auto" 
-        Width="396"
+        Width="412"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -28,6 +28,7 @@
         <SolidColorBrush x:Key="BrushTextMuted" Color="#64748B"/>
         <SolidColorBrush x:Key="BrushAccent" Color="#1D72FE"/>
         <SolidColorBrush x:Key="BrushAccentHover" Color="#1562DF"/>
+        <SolidColorBrush x:Key="BrushAccentText" Color="#60A5FA"/>
         <SolidColorBrush x:Key="BrushReviewBg" Color="#2A303C"/>
         <SolidColorBrush x:Key="BrushReviewHover" Color="#353D4C"/>
         <SolidColorBrush x:Key="BrushReviewText" Color="#F1F5F9"/>
@@ -127,28 +128,31 @@
             </Style.Triggers>
         </Style>
 
-        <!-- Fluent 2 Tab Button Style (Modern Segmented Pill) -->
+        <!-- Fluent 2 Tab Button Style (Modern Pivot Baseline Indicator) -->
         <Style x:Key="FluentTabButton" TargetType="RadioButton">
-            <Setter Property="Height" Value="30"/>
+            <Setter Property="Height" Value="32"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="11.5"/>
-            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="Normal"/>
             <Setter Property="FontFamily" Value="{StaticResource FontText}"/>
             <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}"/>
+            <Setter Property="Background" Value="Transparent"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="RadioButton">
-                        <Border x:Name="bdr" Background="Transparent" CornerRadius="6" Padding="6,2">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
+                        <Grid Background="Transparent">
+                            <Border x:Name="hoverBdr" Background="Transparent" CornerRadius="5" Margin="2,1,2,3"/>
+                            <ContentPresenter x:Name="content" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,2,4"/>
+                            <Border x:Name="indicatorBar" Height="2.5" CornerRadius="1.25" Background="{DynamicResource BrushAccent}" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="10,0,10,0" Visibility="Collapsed"/>
+                        </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushSubtleHover}"/>
+                                <Setter TargetName="hoverBdr" Property="Background" Value="{DynamicResource BrushSubtleHover}"/>
                                 <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
                             </Trigger>
                             <Trigger Property="IsChecked" Value="True">
-                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushAccent}"/>
-                                <Setter Property="Foreground" Value="White"/>
+                                <Setter TargetName="indicatorBar" Property="Visibility" Value="Visible"/>
+                                <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
                                 <Setter Property="FontWeight" Value="SemiBold"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -187,13 +191,14 @@
             </Setter>
         </Style>
 
-        <!-- Header Button Style (26x26, 5px) -->
+        <!-- Header Button Style (26x26, 5px) with Dynamic Foreground Hover -->
         <Style x:Key="HeaderBtn" TargetType="Button">
             <Setter Property="Width" Value="26"/>
             <Setter Property="Height" Value="26"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -203,9 +208,87 @@
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushSubtleHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushReviewHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="bdr" Property="Opacity" Value="0.38"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Subtle Action Button Style (Width Auto, e.g. + Guardar actual) -->
+        <Style x:Key="SubtleActionBtn" TargetType="Button">
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushAccentText}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushSubtleHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushReviewHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource BrushTextPrimary}"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bdr" Property="Opacity" Value="0.4"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Danger Ghost Icon Button (Trash / Cancel / Delete) -->
+        <Style x:Key="DangerGhostIconButton" TargetType="Button">
+            <Setter Property="Width" Value="28"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bdr" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDangerBg}"/>
+                                <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource BrushDanger}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource BrushDanger}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDangerHover}"/>
+                                <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource BrushDangerHover}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bdr" Property="Opacity" Value="0.35"/>
                                 <Setter Property="Cursor" Value="Arrow"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -243,6 +326,44 @@
                                 <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDangerHover}"/>
                                 <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource BrushDangerHover}"/>
                                 <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Fluent 2 Accent Pill Button (Apply Profile) -->
+        <Style x:Key="AccentPillButton" TargetType="Button">
+            <Setter Property="Height" Value="26"/>
+            <Setter Property="Padding" Value="9,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="{DynamicResource BrushAccent}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource BrushAccent}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bdr" 
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushAccentHover}"/>
+                                <Setter TargetName="bdr" Property="BorderBrush" Value="{DynamicResource BrushAccentHover}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bdr" Property="Background" Value="#1558C8"/>
+                                <Setter TargetName="bdr" Property="BorderBrush" Value="#1558C8"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
@@ -460,8 +581,7 @@
                                 Margin="0,0,3,0">
                             <TextBlock Text="&#xE740;" 
                                        FontFamily="{StaticResource FontIcons}" 
-                                       FontSize="11" 
-                                       Foreground="{DynamicResource BrushTextSecondary}"/>
+                                       FontSize="11"/>
                         </Button>
                         <Button x:Name="BtnOptions" 
                                 Click="BtnOptions_Click" 
@@ -469,24 +589,25 @@
                                 ToolTip="Options">
                             <TextBlock Text="&#xE712;" 
                                        FontFamily="{StaticResource FontIcons}" 
-                                       FontSize="13" 
-                                       Foreground="{DynamicResource BrushTextSecondary}"/>
+                                       FontSize="13"/>
                         </Button>
                     </StackPanel>
                 </Grid>
 
-                <!-- ROW 1: FLUENT 2 SEGMENTED NAVIGATION TABS -->
-                <Border x:Name="NavigationBarBorder" Grid.Row="1" Background="{DynamicResource BrushReviewBg}" CornerRadius="7" Padding="3" Margin="0,0,0,14">
+                <!-- ROW 1: FLUENT 2 PIVOT NAVIGATION TABS -->
+                <Border x:Name="NavigationBarBorder" Grid.Row="1" Background="Transparent" BorderThickness="0,0,0,1" BorderBrush="{DynamicResource BrushWindowBorder}" Padding="0" Margin="0,0,0,12">
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <RadioButton x:Name="TabBtnClean" Grid.Column="0" Content="Clean" Style="{StaticResource FluentTabButton}" IsChecked="True" Click="TabBtn_Click" Tag="Clean"/>
-                        <RadioButton x:Name="TabBtnPorts" Grid.Column="1" Content="Ports" Style="{StaticResource FluentTabButton}" Click="TabBtn_Click" Tag="Ports"/>
-                        <RadioButton x:Name="TabBtnTasks" Grid.Column="2" Content="RAM &amp; Tasks" Style="{StaticResource FluentTabButton}" Click="TabBtn_Click" Tag="Tasks"/>
+                        <RadioButton x:Name="TabBtnClean" Grid.Column="0" Content="Limpieza" Style="{StaticResource FluentTabButton}" IsChecked="True" Click="TabBtn_Click" Tag="Clean"/>
+                        <RadioButton x:Name="TabBtnPorts" Grid.Column="1" Content="Puertos" Style="{StaticResource FluentTabButton}" Click="TabBtn_Click" Tag="Ports"/>
+                        <RadioButton x:Name="TabBtnTasks" Grid.Column="2" Content="Tareas" Style="{StaticResource FluentTabButton}" Click="TabBtn_Click" Tag="Tasks"/>
+                        <RadioButton x:Name="TabBtnDisplays" Grid.Column="3" Content="Pantallas" Style="{StaticResource FluentTabButton}" Click="TabBtn_Click" Tag="Displays"/>
                     </Grid>
                 </Border>
 
@@ -518,7 +639,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Border Grid.Column="0" Width="38" Height="38" CornerRadius="9" Background="{DynamicResource BrushReviewBg}" Margin="0,0,12,0" VerticalAlignment="Center">
-                                    <TextBlock Text="&#xE74C;" FontFamily="{StaticResource FontIcons}" FontSize="18" Foreground="{DynamicResource BrushAccent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xE74C;" FontFamily="{StaticResource FontIcons}" FontSize="18" Foreground="{DynamicResource BrushAccentText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
@@ -536,6 +657,9 @@
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
                                                     <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushAccentHover}"/>
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="#1558C8"/>
                                                 </Trigger>
                                                 <Trigger Property="IsEnabled" Value="False">
                                                     <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
@@ -563,7 +687,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Border Grid.Column="0" Width="38" Height="38" CornerRadius="9" Background="{DynamicResource BrushReviewBg}" Margin="0,0,12,0" VerticalAlignment="Center">
-                                    <TextBlock Text="&#xE968;" FontFamily="{StaticResource FontIcons}" FontSize="18" Foreground="{DynamicResource BrushAccent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock Text="&#xE968;" FontFamily="{StaticResource FontIcons}" FontSize="18" Foreground="{DynamicResource BrushAccentText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
@@ -581,6 +705,9 @@
                                             <ControlTemplate.Triggers>
                                                 <Trigger Property="IsMouseOver" Value="True">
                                                     <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDangerHover}"/>
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="#DC2626"/>
                                                 </Trigger>
                                                 <Trigger Property="IsEnabled" Value="False">
                                                     <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
@@ -608,7 +735,7 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Border Grid.Column="0" Width="38" Height="38" CornerRadius="9" Background="{DynamicResource BrushReviewBg}" Margin="0,0,12,0" VerticalAlignment="Center">
-                                    <TextBlock x:Name="IcoCompactTasksMain" Text="&#xE950;" FontFamily="{StaticResource FontIcons}" FontSize="18" Foreground="{DynamicResource BrushAccent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="IcoCompactTasksMain" Text="&#xE950;" FontFamily="{StaticResource FontIcons}" FontSize="18" Foreground="{DynamicResource BrushAccentText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
@@ -627,6 +754,9 @@
                                                 <Trigger Property="IsMouseOver" Value="True">
                                                     <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDangerHover}"/>
                                                 </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="#DC2626"/>
+                                                </Trigger>
                                                 <Trigger Property="IsEnabled" Value="False">
                                                     <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
                                                     <Setter Property="Cursor" Value="Arrow"/>
@@ -640,22 +770,70 @@
                                     </StackPanel>
                                 </Button>
                             </Grid>
+
+                            <!-- FEATURE 4: DISPLAYS COMPACT CARD -->
+                            <Grid x:Name="CompactCardDisplays" Visibility="Collapsed" Opacity="0">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform x:Name="TransCompactDisplays" X="8"/>
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource BrushReviewBg}" Margin="0,0,10,0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="IcoCompactDisplaysMain" Text="&#xE7F4;" FontFamily="{StaticResource FontIcons}" FontSize="16" Foreground="{DynamicResource BrushAccentText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                    <TextBlock x:Name="TxtCompactDisplaysTag" Text="PANTALLAS" FontSize="8.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" FontFamily="{StaticResource FontText}"/>
+                                    <TextBlock x:Name="TxtCompactDisplaysTitle" Text="Setup 3 Pantallas" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" FontFamily="{StaticResource FontDisplay}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="TxtCompactDisplaysDesc" Text="3 pantallas activas" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" FontFamily="{StaticResource FontText}" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+
+                                <Button x:Name="BtnCompactDisplaysAction" Grid.Column="2" Click="BtnCompactDisplaysAction_Click" Height="28" Padding="11,0" Cursor="Hand" Background="{DynamicResource BrushAccent}" BorderThickness="0" VerticalAlignment="Center">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="5">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushAccentHover}"/>
+                                                </Trigger>
+                                                <Trigger Property="IsPressed" Value="True">
+                                                    <Setter TargetName="bdr" Property="Background" Value="#1558C8"/>
+                                                </Trigger>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                                    <Setter Property="Cursor" Value="Arrow"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="IcoCompactDisplaysAction" Text="&#xE7FC;" FontFamily="{StaticResource FontIcons}" FontSize="11" Foreground="White" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="TxtCompactDisplaysAction" Text="Gaming" Foreground="White" FontWeight="SemiBold" FontSize="11" FontFamily="{StaticResource FontText}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
                         </Grid>
 
                         <!-- ROW 1: MINIMALIST STEPPER & DOTS (NO TABS!) -->
                         <Grid Grid.Row="1" Margin="0,8,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/> <!-- Prev Button < -->
-                                <ColumnDefinition Width="*"/>    <!-- Centered Dots • • • -->
+                                <ColumnDefinition Width="*"/>    <!-- Centered Dots • • • • -->
                                 <ColumnDefinition Width="Auto"/> <!-- Next Button > -->
                             </Grid.ColumnDefinitions>
 
                             <!-- Previous Chevron Button -->
                             <Button x:Name="BtnCompactPrev" Grid.Column="0" Click="BtnCompactPrev_Click" Style="{StaticResource HeaderBtn}" Width="22" Height="20" ToolTip="Feature Anterior">
-                                <TextBlock Text="&#xE76B;" FontFamily="{StaticResource FontIcons}" FontSize="9" Foreground="{DynamicResource BrushTextMuted}"/>
+                                <TextBlock Text="&#xE76B;" FontFamily="{StaticResource FontIcons}" FontSize="9"/>
                             </Button>
 
-                            <!-- Centered Micro Indicator Pills (Clean, Ports, Tasks) -->
+                            <!-- Centered Micro Indicator Pills (Clean, Ports, Tasks, Displays) -->
                             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <!-- Dot 1: Clean -->
                                 <Border Background="Transparent" Padding="4,6" Cursor="Hand" MouseDown="DotCompactClean_MouseDown" ToolTip="Limpieza">
@@ -669,11 +847,15 @@
                                 <Border Background="Transparent" Padding="4,6" Cursor="Hand" MouseDown="DotCompactTasks_MouseDown" ToolTip="RAM &amp; Tareas">
                                     <Border x:Name="DotCompactTasks" Width="4" Height="4" CornerRadius="2" Background="{DynamicResource BrushTextMuted}"/>
                                 </Border>
+                                <!-- Dot 4: Displays -->
+                                <Border Background="Transparent" Padding="4,6" Cursor="Hand" MouseDown="DotCompactDisplays_MouseDown" ToolTip="Pantallas">
+                                    <Border x:Name="DotCompactDisplays" Width="4" Height="4" CornerRadius="2" Background="{DynamicResource BrushTextMuted}"/>
+                                </Border>
                             </StackPanel>
 
                             <!-- Next Chevron Button -->
                             <Button x:Name="BtnCompactNext" Grid.Column="2" Click="BtnCompactNext_Click" Style="{StaticResource HeaderBtn}" Width="22" Height="20" ToolTip="Siguiente Feature">
-                                <TextBlock Text="&#xE76C;" FontFamily="{StaticResource FontIcons}" FontSize="9" Foreground="{DynamicResource BrushTextMuted}"/>
+                                <TextBlock Text="&#xE76C;" FontFamily="{StaticResource FontIcons}" FontSize="9"/>
                             </Button>
                         </Grid>
                     </Grid>
@@ -826,8 +1008,7 @@
                                     <TextBlock x:Name="IcoRescanClean" 
                                                Text="&#xE72C;" 
                                                FontFamily="{StaticResource FontIcons}" 
-                                               FontSize="10.5" 
-                                               Foreground="{DynamicResource BrushTextSecondary}"/>
+                                               FontSize="10.5"/>
                                 </Button>
                             </Grid>
                             <TextBlock x:Name="TxtTotalSize" 
@@ -1087,7 +1268,7 @@
                                                        Text="{Binding Glyph}" 
                                                        FontFamily="{StaticResource FontIcons}" 
                                                        FontSize="13" 
-                                                       Foreground="{DynamicResource BrushAccent}" 
+                                                       Foreground="{DynamicResource BrushAccentText}" 
                                                        VerticalAlignment="Center" 
                                                        Margin="0,0,10,0"/>
 
@@ -1149,7 +1330,7 @@
                         <TextBlock x:Name="TxtPortsSummary" Text="Checking dev ports..." Foreground="{DynamicResource BrushTextSecondary}" FontSize="11" FontFamily="{StaticResource FontText}" Margin="0,2,0,0"/>
                     </StackPanel>
                     <Button x:Name="BtnRefreshPorts" Grid.Column="1" Click="BtnRefreshPorts_Click" Style="{StaticResource HeaderBtn}" ToolTip="Refresh Ports" Width="28" Height="28">
-                        <TextBlock x:Name="IcoRefreshPorts" Text="&#xE72C;" FontFamily="{StaticResource FontIcons}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}"/>
+                        <TextBlock x:Name="IcoRefreshPorts" Text="&#xE72C;" FontFamily="{StaticResource FontIcons}" FontSize="12"/>
                     </Button>
                 </Grid>
 
@@ -1233,7 +1414,7 @@
 
                                         <!-- Port Badge -->
                                         <Border Grid.Column="0" MinWidth="52" Height="26" CornerRadius="6" Background="{DynamicResource BrushReviewBg}" BorderBrush="{DynamicResource BrushWindowBorder}" BorderThickness="1" Padding="6,0" Margin="0,0,10,0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding FormattedPort}" FontWeight="Bold" FontSize="11.5" Foreground="{DynamicResource BrushAccent}" FontFamily="{StaticResource FontText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding FormattedPort}" FontWeight="Bold" FontSize="11.5" Foreground="{DynamicResource BrushAccentText}" FontFamily="{StaticResource FontText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
 
                                         <!-- Process / Description -->
@@ -1286,7 +1467,7 @@
 
                     <!-- Refresh Tasks Button -->
                     <Button x:Name="BtnRefreshTasks" Grid.Column="1" Click="BtnRefreshTasks_Click" Style="{StaticResource HeaderBtn}" ToolTip="Refresh Tasks" Width="28" Height="28">
-                        <TextBlock x:Name="IcoRefreshTasks" Text="&#xE72C;" FontFamily="{StaticResource FontIcons}" FontSize="12" Foreground="{DynamicResource BrushTextSecondary}"/>
+                        <TextBlock x:Name="IcoRefreshTasks" Text="&#xE72C;" FontFamily="{StaticResource FontIcons}" FontSize="12"/>
                     </Button>
                 </Grid>
 
@@ -1347,7 +1528,7 @@
 
                                         <!-- Process Icon Glyph -->
                                         <Border Grid.Column="0" Width="30" Height="30" CornerRadius="6" Background="{DynamicResource BrushReviewBg}" Margin="0,0,10,0" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Glyph}" FontFamily="{StaticResource FontIcons}" FontSize="13" Foreground="{DynamicResource BrushAccent}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding Glyph}" FontFamily="{StaticResource FontIcons}" FontSize="13" Foreground="{DynamicResource BrushAccentText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                         </Border>
 
                                         <!-- Name & Stats -->
@@ -1381,6 +1562,167 @@
                 </ScrollViewer>
             </Grid>
             <!-- END TAB 3: RAM & TASKS GUARDIAN CONTAINER -->
+
+            <!-- ============================================== -->
+            <!-- TAB 4: DISPLAYS & MONITOR PROFILES CONTAINER   -->
+            <!-- ============================================== -->
+            <Grid x:Name="TabDisplaysContainer" Visibility="Collapsed" Opacity="0">
+                <Grid.RenderTransform>
+                    <TranslateTransform x:Name="TransDisplaysTab" Y="6"/>
+                </Grid.RenderTransform>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Header & Refresh -->
+                    <RowDefinition Height="Auto"/> <!-- Connected Monitors Section -->
+                    <RowDefinition Height="Auto"/> <!-- Profiles Header & Add Button -->
+                    <RowDefinition Height="*"/>    <!-- Profiles List (Scrollable) -->
+                    <RowDefinition Height="Auto"/> <!-- Inline Save Form (Expandable) -->
+                </Grid.RowDefinitions>
+
+                <!-- Row 0: Header & Refresh -->
+                <Grid Grid.Row="0" Margin="0,2,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtDisplaysHeaderTitle" Text="Gestor de Pantallas" Foreground="{DynamicResource BrushTextPrimary}" FontSize="13.5" FontWeight="SemiBold" FontFamily="{StaticResource FontText}"/>
+                        <TextBlock x:Name="TxtDisplaysHeaderDesc" Text="Perfiles rápidos y disposición física" Foreground="{DynamicResource BrushTextSecondary}" FontSize="11" FontFamily="{StaticResource FontText}" Margin="0,2,0,0"/>
+                    </StackPanel>
+                    <Button x:Name="BtnRefreshDisplays" Grid.Column="1" Click="BtnRefreshDisplays_Click" Style="{StaticResource HeaderBtn}" ToolTip="Refrescar pantallas" Width="28" Height="28">
+                        <TextBlock x:Name="IcoRefreshDisplays" Text="&#xE72C;" FontFamily="{StaticResource FontIcons}" FontSize="12"/>
+                    </Button>
+                </Grid>
+
+                <!-- Row 1: Connected Monitors (Single-Level Clean Cards, NO outer box) -->
+                <Grid Grid.Row="1" Margin="0,0,0,14">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <TextBlock x:Name="TxtConnectedMonitorsTitle" Text="MONITORES CONECTADOS" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" FontFamily="{StaticResource FontText}" Margin="0,0,0,7"/>
+                    <ItemsControl x:Name="ItemsConnectedMonitors" Grid.Row="1">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="3"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="8" Background="{DynamicResource BrushSubtleHover}" BorderBrush="{DynamicResource BrushWindowBorder}" BorderThickness="1" Padding="8,8" Margin="0,0,6,0">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <!-- Top row: Icon + status dot + primary star -->
+                                        <Grid Grid.Row="0" Margin="0,0,0,5">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Glyph}" FontFamily="{StaticResource FontIcons}" FontSize="13" Foreground="{DynamicResource BrushAccentText}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                                <Ellipse Width="6" Height="6" Fill="{Binding StatusColor}" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                            <Border Visibility="{Binding PrimaryBadgeVisibility}" HorizontalAlignment="Right" Background="{DynamicResource BrushAccent}" CornerRadius="3" Padding="4,1" VerticalAlignment="Center" ToolTip="Pantalla Principal">
+                                                <TextBlock Text="★" FontSize="8" FontWeight="Bold" Foreground="White"/>
+                                            </Border>
+                                        </Grid>
+                                        <!-- Monitor Name -->
+                                        <TextBlock Grid.Row="1" Text="{Binding FriendlyName}" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource BrushTextPrimary}" FontFamily="{StaticResource FontText}" TextTrimming="CharacterEllipsis"/>
+                                        <!-- Resolution & Frequency -->
+                                        <TextBlock Grid.Row="2" Text="{Binding ResolutionFormatted}" FontSize="9.5" Foreground="{DynamicResource BrushTextSecondary}" FontFamily="{StaticResource FontText}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+
+                <!-- Row 2: Profiles Header & Add Profile Button -->
+                <Grid Grid.Row="2" Margin="0,0,0,8">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <TextBlock x:Name="TxtProfilesTitle" Grid.Column="0" Text="PERFILES" FontSize="9.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" FontFamily="{StaticResource FontText}" VerticalAlignment="Center"/>
+                    <Button x:Name="BtnShowAddProfile" Grid.Column="1" Click="BtnShowAddProfile_Click" Style="{StaticResource SubtleActionBtn}" ToolTip="Guardar configuración actual">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE710;" FontFamily="{StaticResource FontIcons}" FontSize="9.5" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                            <TextBlock x:Name="TxtAddProfileBtn" Text="Guardar actual" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!-- Row 3: Profiles List (Scrollable) -->
+                <ScrollViewer Grid.Row="3" MaxHeight="190" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="ItemsDisplayProfiles">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="8" Padding="12,10" Margin="0,0,0,7" Background="{Binding CardBgBrush}" BorderBrush="{Binding CardBorderBrush}" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Profile Icon -->
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="7" Background="{Binding IconBgBrush}" Margin="0,0,12,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding IconGlyph}" FontFamily="{StaticResource FontIcons}" FontSize="16" Foreground="{Binding IconFgBrush}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+
+                                        <!-- Info -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" FontFamily="{StaticResource FontText}" TextTrimming="CharacterEllipsis"/>
+                                                <Border Visibility="{Binding ActiveBadgeVisibility}" Background="{DynamicResource BrushSuccessBg}" BorderBrush="{DynamicResource BrushSuccessCheck}" BorderThickness="1" CornerRadius="4" Padding="5,1" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="ACTIVO" FontSize="8" FontWeight="Bold" Foreground="{DynamicResource BrushSuccessCheck}" FontFamily="{StaticResource FontText}"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Summary}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" FontFamily="{StaticResource FontText}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                                            <TextBlock Text="{Binding WarningMessage}" Visibility="{Binding WarningVisibility}" FontSize="9" Foreground="{DynamicResource BrushWarning}" FontFamily="{StaticResource FontText}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+
+                                        <!-- Action Buttons -->
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Tag="{Binding}" Click="BtnApplyProfile_Click" Visibility="{Binding ApplyButtonVisibility}" IsEnabled="{Binding CanApply}" Style="{StaticResource AccentPillButton}" Height="28" Padding="12,0" Margin="0,0,4,0" ToolTip="Aplicar este perfil">
+                                                <TextBlock Text="Aplicar" FontWeight="SemiBold" FontSize="11" FontFamily="{StaticResource FontText}"/>
+                                            </Button>
+                                            <Button Tag="{Binding}" Click="BtnDeleteProfile_Click" Style="{StaticResource DangerGhostIconButton}" ToolTip="Eliminar perfil">
+                                                <TextBlock Text="&#xE74D;" FontFamily="{StaticResource FontIcons}" FontSize="11"/>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!-- Row 4: Inline Save Form (Expandable) -->
+                <Border x:Name="PanelAddProfile" Grid.Row="4" Background="{DynamicResource BrushReviewBg}" CornerRadius="8" Padding="12,10" Margin="0,8,0,0" Visibility="Collapsed" BorderBrush="{DynamicResource BrushAccent}" BorderThickness="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <TextBlock Text="Guardar configuración actual de pantallas" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource BrushTextPrimary}" FontFamily="{StaticResource FontText}" Margin="0,0,0,8"/>
+                        <Grid Grid.Row="1">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox x:Name="TxtNewProfileName" Grid.Column="0" Height="28" VerticalContentAlignment="Center" Background="{DynamicResource BrushWindowBg}" Foreground="{DynamicResource BrushTextPrimary}" BorderBrush="{DynamicResource BrushWindowBorder}" BorderThickness="1" Padding="8,2" FontSize="11" FontFamily="{StaticResource FontText}" Margin="0,0,6,0"/>
+                            <Button x:Name="BtnConfirmSaveProfile" Grid.Column="1" Click="BtnConfirmSaveProfile_Click" Style="{StaticResource AccentPillButton}" Height="28" Padding="12,0" Margin="0,0,4,0">
+                                <TextBlock Text="Guardar" FontWeight="SemiBold" FontSize="11" FontFamily="{StaticResource FontText}"/>
+                            </Button>
+                            <Button x:Name="BtnCancelAddProfile" Grid.Column="2" Click="BtnCancelAddProfile_Click" Style="{StaticResource DangerGhostIconButton}" Width="28" Height="28" ToolTip="Cancelar">
+                                <TextBlock Text="&#xE711;" FontFamily="{StaticResource FontIcons}" FontSize="11"/>
+                            </Button>
+                        </Grid>
+                    </Grid>
+                </Border>
+            </Grid>
+            <!-- END TAB 4: DISPLAYS CONTAINER -->
 
         </Grid>
         <!-- END FULL CONTENT CONTAINER -->
