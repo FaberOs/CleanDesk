@@ -28,7 +28,8 @@ namespace CleanDesk
         Clean,
         Ports,
         Tasks,
-        Displays
+        Displays,
+        Emulators
     }
 
     public partial class MainWindow : Window
@@ -43,6 +44,7 @@ namespace CleanDesk
         private ObservableCollection<ProcessGroupItem> _processGroups = new ObservableCollection<ProcessGroupItem>();
         private ObservableCollection<MonitorItem> _monitorsList = new ObservableCollection<MonitorItem>();
         private ObservableCollection<DisplayProfileItem> _displayProfiles = new ObservableCollection<DisplayProfileItem>();
+        private ObservableCollection<EmulatorItem> _emulatorsList = new ObservableCollection<EmulatorItem>();
         private HashSet<int> _customPorts = new HashSet<int>();
         private bool _isScanningClean = false;
         private bool _isCleaningNow = false;
@@ -53,9 +55,11 @@ namespace CleanDesk
         private bool _isKillingTasks = false;
         private bool _isLoadingDisplays = false;
         private bool _isApplyingDisplayProfile = false;
+        private bool _isLoadingEmulators = false;
+        private bool _isPerformingEmulatorAction = false;
         private bool _isSwitchingCompactFeature = false;
         private bool _isSwitchingTab = false;
-        private int _compactFeatureIndex = 0; // 0 = Clean, 1 = Ports, 2 = Tasks, 3 = Displays
+        private int _compactFeatureIndex = 0; // 0 = Clean, 1 = Ports, 2 = Tasks, 3 = Displays, 4 = Emulators
 
         private System.Windows.Forms.NotifyIcon _notifyIcon = null;
         private System.Windows.Forms.ContextMenuStrip _trayMenu = null;
@@ -330,6 +334,7 @@ namespace CleanDesk
             TabBtnPorts.Content = Strings.TabPorts;
             TabBtnTasks.Content = Strings.TabTasks;
             TabBtnDisplays.Content = Strings.TabDisplays;
+            TabBtnEmulators.Content = Strings.TabEmulators;
 
             // Ports tab
             TxtPortsHeaderTitle.Text = Strings.IsSpanish ? "Puertos Dev en Escucha" : "Listening Dev Ports";
@@ -349,6 +354,13 @@ namespace CleanDesk
             TxtConnectedMonitorsTitle.Text = Strings.ConnectedMonitors.ToUpper();
             TxtProfilesTitle.Text = Strings.DisplayProfiles.ToUpper();
             TxtAddProfileBtn.Text = Strings.SaveCurrentProfile;
+
+            // Emulators tab
+            TxtEmulatorsHeaderTitle.Text = Strings.EmulatorsTitle;
+            TxtStopAllEmulatorsBtn.Text = Strings.StopAllEmulators;
+            TxtSdkWarningTitle.Text = Strings.SdkNotFound;
+            TxtSdkWarningDesc.Text = Strings.SdkNotFoundDesc;
+            TxtNoAvdsTitle.Text = Strings.NoEmulatorsFound;
 
             // Actualizar textos de categorías
             if (_categories != null)
@@ -430,7 +442,7 @@ namespace CleanDesk
                 }
                 else
                 {
-                    this.Width = 412;
+                    this.Width = 436;
                     NavigationBarBorder.Visibility = Visibility.Visible;
                     FullContentContainer.Visibility = Visibility.Visible;
                     BtnExpandCompact.Visibility = Visibility.Collapsed;
@@ -439,7 +451,7 @@ namespace CleanDesk
             }
 
             // Animación suave de ancho entre vista Completa y Compacta
-            double targetWidth = (newState == WidgetViewState.Compact) ? 330 : 412;
+            double targetWidth = (newState == WidgetViewState.Compact) ? 330 : 436;
             if (Math.Abs(this.Width - targetWidth) > 1)
             {
                 var animW = new DoubleAnimation(targetWidth, TimeSpan.FromMilliseconds(260))
@@ -899,11 +911,13 @@ namespace CleanDesk
             if (_compactFeatureIndex == 1) targetTab = WidgetTab.Ports;
             else if (_compactFeatureIndex == 2) targetTab = WidgetTab.Tasks;
             else if (_compactFeatureIndex == 3) targetTab = WidgetTab.Displays;
+            else if (_compactFeatureIndex == 4) targetTab = WidgetTab.Emulators;
 
             TabBtnClean.IsChecked = (targetTab == WidgetTab.Clean);
             TabBtnPorts.IsChecked = (targetTab == WidgetTab.Ports);
             TabBtnTasks.IsChecked = (targetTab == WidgetTab.Tasks);
             TabBtnDisplays.IsChecked = (targetTab == WidgetTab.Displays);
+            TabBtnEmulators.IsChecked = (targetTab == WidgetTab.Emulators);
 
             await SwitchTabAsync(targetTab);
         }
@@ -913,8 +927,8 @@ namespace CleanDesk
         private void SwitchCompactFeature(int targetIndex, bool animate = true)
         {
             if (_isSwitchingCompactFeature) return;
-            if (targetIndex < 0) targetIndex = 3;
-            if (targetIndex > 3) targetIndex = 0;
+            if (targetIndex < 0) targetIndex = 4;
+            if (targetIndex > 4) targetIndex = 0;
 
             int oldIndex = _compactFeatureIndex;
             if (oldIndex == targetIndex && IsLoaded && _currentState == WidgetViewState.Compact) return;
@@ -925,9 +939,9 @@ namespace CleanDesk
                 _isSwitchingCompactFeature = true;
             }
 
-            FrameworkElement[] cards = new FrameworkElement[] { CompactCardClean, CompactCardPorts, CompactCardTasks, CompactCardDisplays };
-            TranslateTransform[] trans = new TranslateTransform[] { TransCompactClean, TransCompactPorts, TransCompactTasks, TransCompactDisplays };
-            Border[] dots = new Border[] { DotCompactClean, DotCompactPorts, DotCompactTasks, DotCompactDisplays };
+            FrameworkElement[] cards = new FrameworkElement[] { CompactCardClean, CompactCardPorts, CompactCardTasks, CompactCardDisplays, CompactCardEmulators };
+            TranslateTransform[] trans = new TranslateTransform[] { TransCompactClean, TransCompactPorts, TransCompactTasks, TransCompactDisplays, TransCompactEmulators };
+            Border[] dots = new Border[] { DotCompactClean, DotCompactPorts, DotCompactTasks, DotCompactDisplays, DotCompactEmulators };
 
             // Detener cualquier animación previa para evitar colisiones
             for (int i = 0; i < cards.Length; i++)
@@ -962,7 +976,7 @@ namespace CleanDesk
             // Cross-fade & horizontal slide transition between feature cards
             if (oldIndex != targetIndex && animate && IsLoaded)
             {
-                int dir = (targetIndex > oldIndex || (oldIndex == 3 && targetIndex == 0)) && !(oldIndex == 0 && targetIndex == 3) ? 1 : -1;
+                int dir = (targetIndex > oldIndex || (oldIndex == 4 && targetIndex == 0)) && !(oldIndex == 0 && targetIndex == 4) ? 1 : -1;
 
                 var oldCard = cards[oldIndex];
                 var oldTrans = trans[oldIndex];
@@ -1038,6 +1052,10 @@ namespace CleanDesk
             else if (_compactFeatureIndex == 3 && _displayProfiles.Count == 0 && !_isLoadingDisplays && !_isApplyingDisplayProfile)
             {
                 var ignored = LoadDisplaysDataAsync();
+            }
+            else if (_compactFeatureIndex == 4 && _emulatorsList.Count == 0 && !_isLoadingEmulators && !_isPerformingEmulatorAction)
+            {
+                var ignored = LoadEmulatorsDataAsync();
             }
         }
 
@@ -1204,6 +1222,50 @@ namespace CleanDesk
                     TxtCompactDisplaysAction.Text = Strings.IsSpanish ? "Cambiar" : "Switch";
                 }
             }
+
+            // 5. Emulators Feature
+            if (TxtCompactEmusTag != null)
+            {
+                TxtCompactEmusTag.Text = Strings.IsSpanish ? "EMULADORES" : "EMULATORS";
+                if (_isLoadingEmulators || _isPerformingEmulatorAction)
+                {
+                    TxtCompactEmusTitle.Text = Strings.IsSpanish ? "Actualizando..." : "Updating...";
+                    TxtCompactEmusDesc.Text = Strings.IsSpanish ? "Consultando AVDs..." : "Checking AVDs...";
+                    BtnCompactEmusAction.IsEnabled = false;
+                }
+                else
+                {
+                    BtnCompactEmusAction.IsEnabled = true;
+                    int runningCount = _emulatorsList.Count(e => e.IsOnline);
+                    long totalRamMb = _emulatorsList.Where(e => e.IsOnline).Sum(e => e.MemoryUsageMb);
+
+                    if (runningCount == 0)
+                    {
+                        TxtCompactEmusTitle.Text = Strings.IsSpanish ? "0 Activos" : "0 Running";
+                        TxtCompactEmusDesc.Text = Strings.IsSpanish 
+                            ? string.Format("{0} AVDs listos (0 MB)", _emulatorsList.Count) 
+                            : string.Format("{0} AVDs ready (0 MB)", _emulatorsList.Count);
+                        IcoCompactEmusAction.Text = "\uE768";
+                        TxtCompactEmusAction.Text = Strings.IsSpanish ? "Iniciar" : "Start";
+                        BtnCompactEmusAction.Background = (Brush)this.FindResource("BrushAccent");
+                        BtnCompactEmusAction.Visibility = (_emulatorsList.Count > 0) ? Visibility.Visible : Visibility.Collapsed;
+                    }
+                    else
+                    {
+                        string ramStr = (totalRamMb >= 1024)
+                            ? string.Format("{0:0.#} GB RAM", totalRamMb / 1024.0)
+                            : string.Format("{0} MB RAM", totalRamMb);
+
+                        TxtCompactEmusTitle.Text = string.Format("{0} activo{1} • {2}", runningCount, runningCount > 1 ? "s" : "", ramStr);
+                        var activeNames = _emulatorsList.Where(e => e.IsOnline).Select(e => e.DisplayName.Length > 12 ? e.DisplayName.Substring(0, 10) + ".." : e.DisplayName);
+                        TxtCompactEmusDesc.Text = string.Join(", ", activeNames);
+                        IcoCompactEmusAction.Text = "\uE71A";
+                        TxtCompactEmusAction.Text = Strings.IsSpanish ? "Detener" : "Stop";
+                        BtnCompactEmusAction.Background = (Brush)this.FindResource("BrushDanger");
+                        BtnCompactEmusAction.Visibility = Visibility.Visible;
+                    }
+                }
+            }
         }
 
         private void BtnCompactPrev_Click(object sender, RoutedEventArgs e)
@@ -1234,6 +1296,11 @@ namespace CleanDesk
         private void DotCompactDisplays_MouseDown(object sender, MouseButtonEventArgs e)
         {
             SwitchCompactFeature(3);
+        }
+
+        private void DotCompactEmulators_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            SwitchCompactFeature(4);
         }
 
         private void CompactWidgetContainer_MouseWheel(object sender, MouseWheelEventArgs e)
@@ -1431,6 +1498,30 @@ namespace CleanDesk
             }
         }
 
+        private async void BtnCompactEmusAction_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isPerformingEmulatorAction || _isLoadingEmulators) return;
+
+            int runningCount = _emulatorsList.Count(emu => emu.IsOnline);
+            if (runningCount > 0)
+            {
+                await StopAllEmulatorsInternalAsync();
+            }
+            else
+            {
+                if (_emulatorsList.Count == 0)
+                {
+                    await LoadEmulatorsDataAsync();
+                }
+
+                var firstAvd = _emulatorsList.FirstOrDefault();
+                if (firstAvd != null)
+                {
+                    await ToggleEmulatorInternalAsync(firstAvd);
+                }
+            }
+        }
+
         #endregion
 
         private async void BtnScanPC_Click(object sender, RoutedEventArgs e)
@@ -1462,6 +1553,7 @@ namespace CleanDesk
             if (tag == "Ports") targetTab = WidgetTab.Ports;
             else if (tag == "Tasks") targetTab = WidgetTab.Tasks;
             else if (tag == "Displays") targetTab = WidgetTab.Displays;
+            else if (tag == "Emulators") targetTab = WidgetTab.Emulators;
             else targetTab = WidgetTab.Clean;
 
             if (_currentTab == targetTab && IsLoaded) return;
@@ -1482,6 +1574,7 @@ namespace CleanDesk
                 else if (newTab == WidgetTab.Ports) _compactFeatureIndex = 1;
                 else if (newTab == WidgetTab.Tasks) _compactFeatureIndex = 2;
                 else if (newTab == WidgetTab.Displays) _compactFeatureIndex = 3;
+                else if (newTab == WidgetTab.Emulators) _compactFeatureIndex = 4;
 
                 FrameworkElement oldElem = GetTabElement(oldTab);
                 FrameworkElement newElem = GetTabElement(newTab);
@@ -1546,6 +1639,10 @@ namespace CleanDesk
                 {
                     await LoadDisplaysDataAsync();
                 }
+                else if (newTab == WidgetTab.Emulators)
+                {
+                    await LoadEmulatorsDataAsync();
+                }
             }
             finally
             {
@@ -1561,6 +1658,7 @@ namespace CleanDesk
                 case WidgetTab.Ports: return TabPortsContainer;
                 case WidgetTab.Tasks: return TabTasksContainer;
                 case WidgetTab.Displays: return TabDisplaysContainer;
+                case WidgetTab.Emulators: return TabEmulatorsContainer;
                 default: return TabCleanContainer;
             }
         }
@@ -1573,6 +1671,7 @@ namespace CleanDesk
                 case WidgetTab.Ports: return TransPortsTab;
                 case WidgetTab.Tasks: return TransTasksTab;
                 case WidgetTab.Displays: return TransDisplaysTab;
+                case WidgetTab.Emulators: return TransEmulatorsTab;
                 default: return TransCleanTab;
             }
         }
@@ -2104,6 +2203,282 @@ namespace CleanDesk
 
         #endregion
 
+        #region Android Emulators Engine
+
+        private async Task LoadEmulatorsDataAsync()
+        {
+            if (_isLoadingEmulators) return;
+            _isLoadingEmulators = true;
+            BtnRefreshEmulators.IsEnabled = false;
+            StartRotateAnimation(IcoRefreshEmulators);
+
+            try
+            {
+                bool sdkAvailable = EmulatorManager.IsSdkAvailable();
+                BannerSdkNotFound.Visibility = sdkAvailable ? Visibility.Collapsed : Visibility.Visible;
+
+                if (!sdkAvailable)
+                {
+                    _emulatorsList.Clear();
+                    ItemsEmulators.ItemsSource = null;
+                    BannerNoAvds.Visibility = Visibility.Collapsed;
+                    BtnStopAllEmulators.Visibility = Visibility.Collapsed;
+                    TxtEmulatorsTotalRam.Text = Strings.SdkNotFound;
+                    return;
+                }
+
+                var scanResult = await EmulatorManager.ScanEmulatorsAsync();
+                _emulatorsList.Clear();
+                foreach (var emu in scanResult.Emulators)
+                {
+                    _emulatorsList.Add(emu);
+                }
+
+                ItemsEmulators.ItemsSource = null;
+                ItemsEmulators.ItemsSource = _emulatorsList;
+
+                int runningCount = _emulatorsList.Count(e => e.IsOnline);
+                long totalRamMb = _emulatorsList.Where(e => e.IsOnline).Sum(e => e.MemoryUsageMb);
+
+                string ramStr = (totalRamMb >= 1024)
+                    ? string.Format("{0:0.#} GB RAM", totalRamMb / 1024.0)
+                    : string.Format("{0} MB RAM", totalRamMb);
+
+                if (runningCount > 0)
+                {
+                    TxtEmulatorsTotalRam.Text = Strings.IsSpanish
+                        ? string.Format("{0} activo{1} en ejecución • {2} usados", runningCount, runningCount > 1 ? "s" : "", ramStr)
+                        : string.Format("{0} running • {1} used", runningCount, ramStr);
+                    BtnStopAllEmulators.Visibility = Visibility.Visible;
+                }
+                else
+                {
+                    TxtEmulatorsTotalRam.Text = Strings.IsSpanish
+                        ? string.Format("{0} emulador{1} disponible{2} • 0 MB RAM en uso", _emulatorsList.Count, _emulatorsList.Count == 1 ? "" : "es", _emulatorsList.Count == 1 ? "" : "s")
+                        : string.Format("{0} emulator{1} available • 0 MB RAM used", _emulatorsList.Count, _emulatorsList.Count == 1 ? "" : "s");
+                    BtnStopAllEmulators.Visibility = Visibility.Collapsed;
+                }
+
+                BannerNoAvds.Visibility = (_emulatorsList.Count == 0) ? Visibility.Visible : Visibility.Collapsed;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine("[CleanDesk] Error loading emulators: " + ex.Message);
+            }
+            finally
+            {
+                _isLoadingEmulators = false;
+                BtnRefreshEmulators.IsEnabled = true;
+                StopRotateAnimation(IcoRefreshEmulators);
+                UpdateCompactUI();
+            }
+        }
+
+        private async void BtnRefreshEmulators_Click(object sender, RoutedEventArgs e)
+        {
+            await LoadEmulatorsDataAsync();
+        }
+
+        private async void BtnStopAllEmulators_Click(object sender, RoutedEventArgs e)
+        {
+            await StopAllEmulatorsInternalAsync();
+        }
+
+        private async Task StopAllEmulatorsInternalAsync()
+        {
+            if (_isPerformingEmulatorAction) return;
+            _isPerformingEmulatorAction = true;
+            BtnStopAllEmulators.IsEnabled = false;
+
+            try
+            {
+                foreach (var emu in _emulatorsList.Where(e => e.IsOnline))
+                {
+                    emu.StatusText = Strings.IsSpanish ? "Deteniendo..." : "Stopping...";
+                    emu.IsBusy = true;
+                }
+
+                await EmulatorManager.StopAllEmulatorsAsync(_emulatorsList);
+                await Task.Delay(1200);
+                await LoadEmulatorsDataAsync();
+            }
+            finally
+            {
+                _isPerformingEmulatorAction = false;
+                BtnStopAllEmulators.IsEnabled = true;
+                UpdateCompactUI();
+            }
+        }
+
+        private EmulatorItem GetEmulatorItemFromSender(object sender)
+        {
+            var mi = sender as MenuItem;
+            if (mi != null)
+            {
+                var item = mi.DataContext as EmulatorItem;
+                if (item != null) return item;
+
+                var cm = mi.Parent as ContextMenu;
+                if (cm != null)
+                {
+                    var target = cm.PlacementTarget as FrameworkElement;
+                    if (target != null)
+                    {
+                        return (target.DataContext as EmulatorItem) ?? (target.Tag as EmulatorItem);
+                    }
+                }
+            }
+
+            var elem = sender as FrameworkElement;
+            if (elem != null)
+            {
+                return (elem.DataContext as EmulatorItem) ?? (elem.Tag as EmulatorItem);
+            }
+
+            return null;
+        }
+
+        private async void BtnToggleEmulator_Click(object sender, RoutedEventArgs e)
+        {
+            var item = GetEmulatorItemFromSender(sender);
+            if (item == null) return;
+
+            await ToggleEmulatorInternalAsync(item);
+        }
+
+        private async Task ToggleEmulatorInternalAsync(EmulatorItem item)
+        {
+            if (_isPerformingEmulatorAction || item.IsBusy) return;
+            _isPerformingEmulatorAction = true;
+            item.IsBusy = true;
+
+            try
+            {
+                if (item.IsOnline)
+                {
+                    item.StatusText = Strings.IsSpanish ? "Deteniendo..." : "Stopping...";
+                    await EmulatorManager.StopEmulatorAsync(item);
+                    await Task.Delay(1200);
+                }
+                else
+                {
+                    item.StatusText = Strings.IsSpanish ? "Iniciando..." : "Starting...";
+                    await EmulatorManager.StartEmulatorAsync(item);
+                    await Task.Delay(1800);
+                }
+
+                await LoadEmulatorsDataAsync();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message, "CleanDesk", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+            finally
+            {
+                item.IsBusy = false;
+                _isPerformingEmulatorAction = false;
+                UpdateCompactUI();
+            }
+        }
+
+        private void BtnEmulatorMore_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as Button;
+            if (btn != null && btn.ContextMenu != null)
+            {
+                btn.ContextMenu.PlacementTarget = btn;
+                btn.ContextMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+                btn.ContextMenu.IsOpen = true;
+            }
+        }
+
+        private async void MenuColdBoot_Click(object sender, RoutedEventArgs e)
+        {
+            var item = GetEmulatorItemFromSender(sender);
+            if (item == null) return;
+
+            if (_isPerformingEmulatorAction || item.IsBusy) return;
+            _isPerformingEmulatorAction = true;
+            item.IsBusy = true;
+            item.StatusText = Strings.IsSpanish ? "Iniciando en frío..." : "Cold booting...";
+
+            try
+            {
+                await EmulatorManager.StartEmulatorAsync(item, coldBoot: true);
+                await Task.Delay(1800);
+                await LoadEmulatorsDataAsync();
+            }
+            finally
+            {
+                item.IsBusy = false;
+                _isPerformingEmulatorAction = false;
+                UpdateCompactUI();
+            }
+        }
+
+        private async void MenuWipeData_Click(object sender, RoutedEventArgs e)
+        {
+            var item = GetEmulatorItemFromSender(sender);
+            if (item == null) return;
+
+            string confirmMsg = Strings.IsSpanish
+                ? string.Format("¿Deseas borrar todos los datos del emulador '{0}' (Wipe Data)? Se restablecerá el dispositivo de fábrica.", item.DisplayName)
+                : string.Format("Do you want to wipe all data for '{0}'? This will reset the virtual device to factory state.", item.DisplayName);
+
+            var res = MessageBox.Show(confirmMsg, "CleanDesk", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (res != MessageBoxResult.Yes) return;
+
+            if (_isPerformingEmulatorAction || item.IsBusy) return;
+            _isPerformingEmulatorAction = true;
+            item.IsBusy = true;
+            item.StatusText = Strings.IsSpanish ? "Limpiando y arrancando..." : "Wiping & starting...";
+
+            try
+            {
+                await EmulatorManager.StartEmulatorAsync(item, wipeData: true);
+                await Task.Delay(2000);
+                await LoadEmulatorsDataAsync();
+            }
+            finally
+            {
+                item.IsBusy = false;
+                _isPerformingEmulatorAction = false;
+                UpdateCompactUI();
+            }
+        }
+
+        private async void MenuReboot_Click(object sender, RoutedEventArgs e)
+        {
+            var item = GetEmulatorItemFromSender(sender);
+            if (item == null) return;
+
+            if (!item.IsOnline)
+            {
+                await ToggleEmulatorInternalAsync(item);
+                return;
+            }
+
+            if (_isPerformingEmulatorAction || item.IsBusy) return;
+            _isPerformingEmulatorAction = true;
+            item.IsBusy = true;
+            item.StatusText = Strings.IsSpanish ? "Reiniciando..." : "Rebooting...";
+
+            try
+            {
+                await EmulatorManager.RebootEmulatorAsync(item);
+                await Task.Delay(1800);
+                await LoadEmulatorsDataAsync();
+            }
+            finally
+            {
+                item.IsBusy = false;
+                _isPerformingEmulatorAction = false;
+                UpdateCompactUI();
+            }
+        }
+
+        #endregion
+
         #region System Tray & Widget Visibility (Hidden Icons)
 
         private void InitNotifyIcon()
@@ -2354,6 +2729,44 @@ namespace CleanDesk
             miDisplays.DropDownItems.Add(miGaming);
             miDisplays.DropDownItems.Add(miSetup);
             _trayMenu.Items.Add(miDisplays);
+
+            // 6b. Emuladores Android
+            int runningEmus = _emulatorsList.Count(e => e.IsOnline);
+            long emuRamMb = _emulatorsList.Where(e => e.IsOnline).Sum(e => e.MemoryUsageMb);
+            string emuRamStr = (emuRamMb >= 1024) ? string.Format("{0:0.#} GB", emuRamMb / 1024.0) : string.Format("{0} MB", emuRamMb);
+
+            string emusLabel = (runningEmus > 0)
+                ? (Strings.IsSpanish ? string.Format("📱  Emuladores ({0} activos • {1})", runningEmus, emuRamStr) : string.Format("📱  Emulators ({0} running • {1})", runningEmus, emuRamStr))
+                : (Strings.IsSpanish ? "📱  Emuladores (0 activos)" : "📱  Emulators (0 running)");
+
+            var miEmulators = new System.Windows.Forms.ToolStripMenuItem(emusLabel);
+            miEmulators.Font = new System.Drawing.Font("Segoe UI", 9.25f, System.Drawing.FontStyle.Regular);
+            miEmulators.Padding = new System.Windows.Forms.Padding(12, 6, 12, 6);
+
+            var miStopAllEmus = new System.Windows.Forms.ToolStripMenuItem(
+                Strings.IsSpanish ? "⏹️  Detener todos los emuladores" : "⏹️  Stop all emulators",
+                null,
+                (s, e) => Dispatcher.Invoke(new Action(async () =>
+                {
+                    await StopAllEmulatorsInternalAsync();
+                }))
+            );
+            miStopAllEmus.Enabled = (runningEmus > 0);
+            miEmulators.DropDownItems.Add(miStopAllEmus);
+
+            var miOpenTabEmus = new System.Windows.Forms.ToolStripMenuItem(
+                Strings.IsSpanish ? "📱  Ver pestaña de Emuladores" : "📱  Open Emulators Tab",
+                null,
+                (s, e) => Dispatcher.Invoke(new Action(async () =>
+                {
+                    ShowWidget();
+                    TabBtnEmulators.IsChecked = true;
+                    await SwitchTabAsync(WidgetTab.Emulators);
+                }))
+            );
+            miEmulators.DropDownItems.Add(miOpenTabEmus);
+
+            _trayMenu.Items.Add(miEmulators);
 
             _trayMenu.Items.Add(new System.Windows.Forms.ToolStripSeparator());
 

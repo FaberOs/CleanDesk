@@ -59,7 +59,20 @@ Combina en una única interfaz flotante Fluent 2 la solución a las fricciones m
 
 ---
 
-### 5. 🪟 Experiencia Auténtica de Widget (Windows 11 Fluent 2)
+### 5. 📱 Emuladores Android — AVD Manager sin Android Studio
+* **El dolor habitual:**  
+  Al desarrollar aplicaciones móviles (React Native, Flutter, Kotlin, Android nativo) o al programar mediante agentes de IA autónomos en terminales y harnesses, abrir Android Studio consume más de 5 GB de memoria RAM simplemente para mantener la interfaz del IDE abierta, a los que se suman ~3-4 GB de RAM por cada emulador virtual abierto. Si sueles trabajar con 2 emuladores simultáneos, el consumo supera fácilmente los 11-13 GB de RAM en tu máquina, volviendo el sistema lento y pesado.
+* **La solución CleanDesk:**  
+  * **Cero consumo de Android Studio:** Descubre, arranca y administra tus dispositivos virtuales (AVDs) directamente desde CleanDesk sin necesidad de abrir el IDE.
+  * **Ahorro masivo de RAM (~5 GB):** Al prescindir del entorno de Android Studio, recuperas de inmediato ~5 GB de memoria física.
+  * **Medición de RAM real en tiempo real:** Inspecciona los procesos `qemu-system-x86_64.exe` para desglosar con precisión la memoria física consumida por cada emulador activo.
+  * **Botón "Detener Todos" (1-Clic):** Cierra limpiamente todos los emuladores abiertos al instante, recuperando de golpe entre 6 y 8 GB de RAM retenida.
+  * **Acciones Avanzadas:** Arranque en frío (*Cold Boot*), limpieza de datos de fábrica (*Wipe Data*) y reinicio rápido vía ADB.
+  * **Integración con Modo Compacto y System Tray:** Consulta emuladores activos y libéralos directamente desde la píldora compacta o el menú contextual en la bandeja del sistema.
+
+---
+
+### 6. 🪟 Experiencia Auténtica de Widget (Windows 11 Fluent 2)
 * **El dolor habitual:**  
   La gran mayoría de optimizadores de sistema son aplicaciones intrusivas, pesadas, plagadas de publicidad y ocupan espacio valioso en la barra de tareas.
 * **La solución CleanDesk:**  
@@ -75,7 +88,7 @@ Combina en una única interfaz flotante Fluent 2 la solución a las fricciones m
 Para utilizar CleanDesk no necesitas compilar código ni configurar dependencias:
 
 1. Ve a la sección de **[Releases Oficiales](https://github.com/FaberOs/CleanDesk/releases/latest)**.
-2. Descarga el instalador oficial de Windows: **`CleanDesk-v1.1-Setup.exe`**.
+2. Descarga el instalador oficial de Windows: **`CleanDesk-v1.2-Setup.exe`**.
 3. Ejecuta el asistente de instalación.
 
 El instalador te permite personalizar la configuración a tu medida:

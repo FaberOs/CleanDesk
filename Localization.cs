@@ -378,6 +378,62 @@ namespace CleanDesk
         {
             get { return IsSpanish ? "Faltan monitores desconectados" : "Missing disconnected monitors"; }
         }
+
+        // Android Emulator Localized Strings
+        public static string TabEmulators
+        {
+            get { return IsSpanish ? "Emus" : "Emus"; }
+        }
+
+        public static string TabEmulatorsFull
+        {
+            get { return IsSpanish ? "Emuladores" : "Emulators"; }
+        }
+
+        public static string EmulatorsTitle
+        {
+            get { return IsSpanish ? "Emuladores Android" : "Android Emulators"; }
+        }
+
+        public static string EmulatorsSubtitle
+        {
+            get { return IsSpanish ? "Gestor de AVDs sin Android Studio" : "AVD Manager without Android Studio"; }
+        }
+
+        public static string StopAllEmulators
+        {
+            get { return IsSpanish ? "Detener todos" : "Stop all"; }
+        }
+
+        public static string NoEmulatorsFound
+        {
+            get { return IsSpanish ? "No se encontraron AVDs en ~/.android/avd" : "No AVDs found in ~/.android/avd"; }
+        }
+
+        public static string SdkNotFound
+        {
+            get { return IsSpanish ? "Android SDK no detectado" : "Android SDK not detected"; }
+        }
+
+        public static string SdkNotFoundDesc
+        {
+            get { return IsSpanish ? "Verifica que emulator.exe y adb.exe existan en tu SDK." : "Check that emulator.exe and adb.exe exist in your SDK."; }
+        }
+
+        public static string ColdBoot
+        {
+            get { return IsSpanish ? "Arranque en frío" : "Cold boot"; }
+        }
+
+        public static string WipeData
+        {
+            get { return IsSpanish ? "Limpiar datos (Wipe)" : "Wipe data"; }
+        }
+
+        public static string RebootAvd
+        {
+            get { return IsSpanish ? "Reiniciar emulador" : "Reboot emulator"; }
+        }
     }
 }
 
