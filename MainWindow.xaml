@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="CleanDesk" 
         Height="Auto" 
-        Width="412"
+        Width="436"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
@@ -132,7 +132,7 @@
         <Style x:Key="FluentTabButton" TargetType="RadioButton">
             <Setter Property="Height" Value="32"/>
             <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontSize" Value="11.5"/>
             <Setter Property="FontWeight" Value="Normal"/>
             <Setter Property="FontFamily" Value="{StaticResource FontText}"/>
             <Setter Property="Foreground" Value="{DynamicResource BrushTextSecondary}"/>
@@ -143,7 +143,7 @@
                         <Grid Background="Transparent">
                             <Border x:Name="hoverBdr" Background="Transparent" CornerRadius="5" Margin="2,1,2,3"/>
                             <ContentPresenter x:Name="content" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="2,0,2,4"/>
-                            <Border x:Name="indicatorBar" Height="2.5" CornerRadius="1.25" Background="{DynamicResource BrushAccent}" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="10,0,10,0" Visibility="Collapsed"/>
+                            <Border x:Name="indicatorBar" Height="2.5" CornerRadius="1.25" Background="{DynamicResource BrushAccent}" VerticalAlignment="Bottom" HorizontalAlignment="Stretch" Margin="6,0,6,0" Visibility="Collapsed"/>
                         </Grid>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -159,6 +159,42 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
+        </Style>
+
+        <!-- Dynamic Action Button for Emulator Cards (Starts with Accent, Stops with Danger) -->
+        <Style x:Key="EmulatorActionBtn" TargetType="Button">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bdr" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                <Setter Property="Cursor" Value="Arrow"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsOnline}" Value="True">
+                    <Setter Property="Background" Value="{DynamicResource BrushDanger}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsOnline}" Value="False">
+                    <Setter Property="Background" Value="{DynamicResource BrushAccent}"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </DataTrigger>
+            </Style.Triggers>
         </Style>
 
         <!-- Danger Action Button Style -->
@@ -602,12 +638,14 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
                         <RadioButton x:Name="TabBtnClean" Grid.Column="0" Content="Limpieza" Style="{StaticResource FluentTabButton}" IsChecked="True" Click="TabBtn_Click" Tag="Clean"/>
                         <RadioButton x:Name="TabBtnPorts" Grid.Column="1" Content="Puertos" Style="{StaticResource FluentTabButton}" Click="TabBtn_Click" Tag="Ports"/>
                         <RadioButton x:Name="TabBtnTasks" Grid.Column="2" Content="Tareas" Style="{StaticResource FluentTabButton}" Click="TabBtn_Click" Tag="Tasks"/>
                         <RadioButton x:Name="TabBtnDisplays" Grid.Column="3" Content="Pantallas" Style="{StaticResource FluentTabButton}" Click="TabBtn_Click" Tag="Displays"/>
+                        <RadioButton x:Name="TabBtnEmulators" Grid.Column="4" Content="Emuladores" Style="{StaticResource FluentTabButton}" Click="TabBtn_Click" Tag="Emulators"/>
                     </Grid>
                 </Border>
 
@@ -818,13 +856,58 @@
                                     </StackPanel>
                                 </Button>
                             </Grid>
+
+                            <!-- FEATURE 5: EMULATORS COMPACT CARD -->
+                            <Grid x:Name="CompactCardEmulators" Visibility="Collapsed" Opacity="0">
+                                <Grid.RenderTransform>
+                                    <TranslateTransform x:Name="TransCompactEmulators" X="8"/>
+                                </Grid.RenderTransform>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource BrushReviewBg}" Margin="0,0,10,0" VerticalAlignment="Center">
+                                    <TextBlock x:Name="IcoCompactEmusMain" Text="&#xE8EA;" FontFamily="{StaticResource FontIcons}" FontSize="16" Foreground="{DynamicResource BrushAccentText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                    <TextBlock x:Name="TxtCompactEmusTag" Text="EMULADORES" FontSize="8.5" FontWeight="Bold" Foreground="{DynamicResource BrushTextMuted}" FontFamily="{StaticResource FontText}"/>
+                                    <TextBlock x:Name="TxtCompactEmusTitle" Text="0 Activos" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource BrushTextPrimary}" FontFamily="{StaticResource FontDisplay}" TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock x:Name="TxtCompactEmusDesc" Text="Sin emuladores activos" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" FontFamily="{StaticResource FontText}" TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+
+                                <Button x:Name="BtnCompactEmusAction" Grid.Column="2" Click="BtnCompactEmusAction_Click" Height="28" Padding="11,0" Cursor="Hand" Background="{DynamicResource BrushAccent}" BorderThickness="0" VerticalAlignment="Center">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="5">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="bdr" Property="Opacity" Value="0.9"/>
+                                                </Trigger>
+                                                <Trigger Property="IsEnabled" Value="False">
+                                                    <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                                    <Setter Property="Cursor" Value="Arrow"/>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock x:Name="IcoCompactEmusAction" Text="&#xE768;" FontFamily="{StaticResource FontIcons}" FontSize="10" Foreground="White" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="TxtCompactEmusAction" Text="Iniciar" Foreground="White" FontWeight="SemiBold" FontSize="11" FontFamily="{StaticResource FontText}" VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Button>
+                            </Grid>
                         </Grid>
 
                         <!-- ROW 1: MINIMALIST STEPPER & DOTS (NO TABS!) -->
                         <Grid Grid.Row="1" Margin="0,8,0,0">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto"/> <!-- Prev Button < -->
-                                <ColumnDefinition Width="*"/>    <!-- Centered Dots • • • • -->
+                                <ColumnDefinition Width="*"/>    <!-- Centered Dots • • • • • -->
                                 <ColumnDefinition Width="Auto"/> <!-- Next Button > -->
                             </Grid.ColumnDefinitions>
 
@@ -833,7 +916,7 @@
                                 <TextBlock Text="&#xE76B;" FontFamily="{StaticResource FontIcons}" FontSize="9"/>
                             </Button>
 
-                            <!-- Centered Micro Indicator Pills (Clean, Ports, Tasks, Displays) -->
+                            <!-- Centered Micro Indicator Pills (Clean, Ports, Tasks, Displays, Emulators) -->
                             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <!-- Dot 1: Clean -->
                                 <Border Background="Transparent" Padding="4,6" Cursor="Hand" MouseDown="DotCompactClean_MouseDown" ToolTip="Limpieza">
@@ -850,6 +933,10 @@
                                 <!-- Dot 4: Displays -->
                                 <Border Background="Transparent" Padding="4,6" Cursor="Hand" MouseDown="DotCompactDisplays_MouseDown" ToolTip="Pantallas">
                                     <Border x:Name="DotCompactDisplays" Width="4" Height="4" CornerRadius="2" Background="{DynamicResource BrushTextMuted}"/>
+                                </Border>
+                                <!-- Dot 5: Emulators -->
+                                <Border Background="Transparent" Padding="4,6" Cursor="Hand" MouseDown="DotCompactEmulators_MouseDown" ToolTip="Emuladores">
+                                    <Border x:Name="DotCompactEmulators" Width="4" Height="4" CornerRadius="2" Background="{DynamicResource BrushTextMuted}"/>
                                 </Border>
                             </StackPanel>
 
@@ -1723,6 +1810,142 @@
                 </Border>
             </Grid>
             <!-- END TAB 4: DISPLAYS CONTAINER -->
+
+            <!-- ============================================== -->
+            <!-- TAB 5: ANDROID EMULATORS CONTAINER            -->
+            <!-- ============================================== -->
+            <Grid x:Name="TabEmulatorsContainer" Visibility="Collapsed" Opacity="0">
+                <Grid.RenderTransform>
+                    <TranslateTransform x:Name="TransEmulatorsTab" Y="6"/>
+                </Grid.RenderTransform>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/> <!-- Row 0: Header & Action -->
+                    <RowDefinition Height="Auto"/> <!-- Row 1: Warning if SDK not found -->
+                    <RowDefinition Height="*"/>    <!-- Row 2: Emulators List -->
+                </Grid.RowDefinitions>
+
+                <!-- Row 0: Header & Action -->
+                <Grid Grid.Row="0" Margin="0,2,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                        <TextBlock x:Name="TxtEmulatorsHeaderTitle" Text="Emuladores Android" Foreground="{DynamicResource BrushTextPrimary}" FontSize="13.5" FontWeight="SemiBold" FontFamily="{StaticResource FontText}"/>
+                        <TextBlock x:Name="TxtEmulatorsTotalRam" Text="Total RAM: 0 MB" Foreground="{DynamicResource BrushTextSecondary}" FontSize="11" FontFamily="{StaticResource FontText}" Margin="0,2,0,0"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- Stop All Emulators Button -->
+                        <Button x:Name="BtnStopAllEmulators" Click="BtnStopAllEmulators_Click" Height="28" Padding="10,0" Margin="0,0,6,0" Cursor="Hand" Background="{DynamicResource BrushDanger}" BorderThickness="0" VerticalAlignment="Center" Visibility="Collapsed">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border x:Name="bdr" Background="{TemplateBinding Background}" CornerRadius="5">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}"/>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="bdr" Property="Background" Value="{DynamicResource BrushDangerHover}"/>
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter TargetName="bdr" Property="Opacity" Value="0.45"/>
+                                            <Setter Property="Cursor" Value="Arrow"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE71A;" FontFamily="{StaticResource FontIcons}" FontSize="9.5" Foreground="White" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                <TextBlock x:Name="TxtStopAllEmulatorsBtn" Text="Detener todos" Foreground="White" FontWeight="SemiBold" FontSize="11" FontFamily="{StaticResource FontText}" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Refresh Emulators Button -->
+                        <Button x:Name="BtnRefreshEmulators" Click="BtnRefreshEmulators_Click" Style="{StaticResource HeaderBtn}" ToolTip="Refrescar emuladores" Width="28" Height="28">
+                            <TextBlock x:Name="IcoRefreshEmulators" Text="&#xE72C;" FontFamily="{StaticResource FontIcons}" FontSize="12"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Row 1: Warning if SDK not found -->
+                <Border x:Name="BannerSdkNotFound" Grid.Row="1" Background="{DynamicResource BrushWarningBg}" BorderBrush="{DynamicResource BrushWarning}" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,12" Visibility="Collapsed">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource FontIcons}" FontSize="12" Foreground="{DynamicResource BrushWarning}" VerticalAlignment="Center" Margin="0,0,6,0"/>
+                            <TextBlock x:Name="TxtSdkWarningTitle" Text="Android SDK no detectado" FontWeight="Bold" FontSize="11.5" Foreground="{DynamicResource BrushWarning}" FontFamily="{StaticResource FontText}"/>
+                        </StackPanel>
+                        <TextBlock x:Name="TxtSdkWarningDesc" Text="Configura ANDROID_HOME o instala Android SDK para gestionar emuladores." FontSize="10" Foreground="{DynamicResource BrushTextPrimary}" FontFamily="{StaticResource FontText}" Margin="0,2,0,0" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Row 1 (alt): Empty banner if no AVDs found -->
+                <Border x:Name="BannerNoAvds" Grid.Row="1" Background="{DynamicResource BrushReviewBg}" BorderBrush="{DynamicResource BrushWindowBorder}" BorderThickness="1" CornerRadius="8" Padding="12,10" Margin="0,0,0,12" Visibility="Collapsed">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="&#xE8EA;" FontFamily="{StaticResource FontIcons}" FontSize="24" Foreground="{DynamicResource BrushTextMuted}" HorizontalAlignment="Center" Margin="0,0,0,6"/>
+                        <TextBlock x:Name="TxtNoAvdsTitle" Text="No se encontraron dispositivos virtuales (AVDs)" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource BrushTextSecondary}" FontFamily="{StaticResource FontText}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Crea un emulador desde Android CLI o Android Studio." FontSize="10" Foreground="{DynamicResource BrushTextMuted}" FontFamily="{StaticResource FontText}" HorizontalAlignment="Center" Margin="0,2,0,0"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Row 2: Emulators List (Scrollable) -->
+                <ScrollViewer Grid.Row="2" MaxHeight="270" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="ItemsEmulators">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border CornerRadius="8" Padding="12,10" Margin="0,0,0,7" Background="{DynamicResource BrushSubtleHover}" BorderBrush="{DynamicResource BrushWindowBorder}" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto"/> <!-- Phone Icon -->
+                                            <ColumnDefinition Width="*"/>    <!-- Name & Info -->
+                                            <ColumnDefinition Width="Auto"/> <!-- Action Buttons -->
+                                        </Grid.ColumnDefinitions>
+
+                                        <!-- Phone Icon -->
+                                        <Border Grid.Column="0" Width="36" Height="36" CornerRadius="7" Background="{DynamicResource BrushReviewBg}" Margin="0,0,12,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Glyph}" FontFamily="{StaticResource FontIcons}" FontSize="16" Foreground="{DynamicResource BrushAccentText}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        </Border>
+
+                                        <!-- Name & Info -->
+                                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,10,0">
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding DisplayName}" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource BrushTextPrimary}" FontFamily="{StaticResource FontText}" TextTrimming="CharacterEllipsis"/>
+                                                <!-- Status Badge -->
+                                                <Border Background="{Binding StatusBadgeBg}" BorderBrush="{Binding StatusBadgeBorder}" BorderThickness="1" CornerRadius="4" Padding="5,1" Margin="6,0,0,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding StatusBadgeText}" FontSize="8" FontWeight="Bold" Foreground="{Binding StatusBadgeFg}" FontFamily="{StaticResource FontText}"/>
+                                                </Border>
+                                            </StackPanel>
+                                            <TextBlock Text="{Binding Subtitle}" FontSize="10.5" Foreground="{DynamicResource BrushTextSecondary}" FontFamily="{StaticResource FontText}" Margin="0,2,0,0" TextTrimming="CharacterEllipsis"/>
+                                        </StackPanel>
+
+                                        <!-- Action Buttons -->
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Tag="{Binding}" Click="BtnToggleEmulator_Click" IsEnabled="{Binding CanExecuteAction}" Style="{StaticResource EmulatorActionBtn}" Height="28" Padding="12,0" Margin="0,0,4,0">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding ActionButtonIcon}" FontFamily="{StaticResource FontIcons}" FontSize="9.5" Margin="0,0,4,0" VerticalAlignment="Center"/>
+                                                    <TextBlock Text="{Binding ActionButtonText}" FontWeight="SemiBold" FontSize="11" FontFamily="{StaticResource FontText}" VerticalAlignment="Center"/>
+                                                </StackPanel>
+                                            </Button>
+
+                                            <!-- Context Menu / More Button -->
+                                            <Button Tag="{Binding}" Click="BtnEmulatorMore_Click" Style="{StaticResource DangerGhostIconButton}" Width="28" Height="28" ToolTip="Opciones avanzadas">
+                                                <TextBlock Text="&#xE712;" FontFamily="{StaticResource FontIcons}" FontSize="11"/>
+                                                <Button.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="Arranque en frío (Cold Boot)" Click="MenuColdBoot_Click"/>
+                                                        <MenuItem Header="Limpiar datos (Wipe Data)" Click="MenuWipeData_Click"/>
+                                                        <MenuItem Header="Reiniciar emulador" Click="MenuReboot_Click"/>
+                                                    </ContextMenu>
+                                                </Button.ContextMenu>
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+            <!-- END TAB 5: ANDROID EMULATORS CONTAINER -->
 
         </Grid>
         <!-- END FULL CONTENT CONTAINER -->

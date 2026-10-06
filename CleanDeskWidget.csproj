@@ -49,6 +49,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Management" />
   </ItemGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
@@ -73,6 +74,7 @@
     <Compile Include="ProcessGuardian.cs" />
     <Compile Include="AppIconHelper.cs" />
     <Compile Include="DisplayManager.cs" />
+    <Compile Include="EmulatorManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

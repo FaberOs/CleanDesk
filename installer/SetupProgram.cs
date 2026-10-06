@@ -70,7 +70,7 @@ namespace CleanDeskInstaller
 
         private void InitUI()
         {
-            this.Text = "Instalador de CleanDesk - Versión 1.1";
+            this.Text = "Instalador de CleanDesk - Versión 1.2";
             this.Size = new Size(540, 480);
             this.FormBorderStyle = FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
@@ -517,7 +517,7 @@ rmdir /s /q ""{0}"" 2>nul
                     if (key != null)
                     {
                         key.SetValue("DisplayName", "CleanDesk Widget");
-                        key.SetValue("DisplayVersion", "1.1.0");
+                        key.SetValue("DisplayVersion", "1.2.0");
                         key.SetValue("Publisher", "FaberOs");
                         key.SetValue("DisplayIcon", icoPath);
                         key.SetValue("UninstallString", Path.Combine(installDir, "uninstall.bat"));
